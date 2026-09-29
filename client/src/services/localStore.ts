@@ -1296,6 +1296,7 @@ export const localStore = {
       updated_at: new Date().toISOString()
     };
     persist();
+    triggerRealtime('AUTH_STATE_CHANGED', store.currentUser);
     return store.currentUser;
   },
 

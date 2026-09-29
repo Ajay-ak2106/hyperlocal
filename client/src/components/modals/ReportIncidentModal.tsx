@@ -16,9 +16,11 @@ import {
   MapPin,
   X,
   CheckCircle2,
-  Loader2
+  Loader2,
+  Navigation
 } from 'lucide-react';
 import { offlineManager } from '../../services/offline.js';
+import { CHENNAI_AREAS, getAreaLocation } from '../../constants/areas.js';
 
 interface ReportIncidentModalProps {
   isOpen: boolean;
@@ -32,6 +34,14 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
   const [type, setType] = useState<IncidentType>('ROAD_BLOCK');
   const [severity, setSeverity] = useState<SeverityLevel>('HIGH');
   const [description, setDescription] = useState('');
+  const [selectedArea, setSelectedArea] = useState<string>(currentArea || 'Velachery');
+  const [landmark, setLandmark] = useState<string>('');
+  const [incidentCoords, setIncidentCoords] = useState<{ latitude: number; longitude: number }>({
+    latitude: coords?.latitude || 12.9785,
+    longitude: coords?.longitude || 80.2215
+  });
+  const [usingGps, setUsingGps] = useState(false);
+
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
@@ -51,6 +61,33 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
     { id: 'MISSING_PERSON', labelTa: 'காணாமல் போனவர்', labelEn: 'Missing Person', icon: UserX },
     { id: 'EMERGENCY', labelTa: 'பொது அவசரம்', labelEn: 'General Emergency', icon: AlertTriangle },
   ];
+
+  const handleAreaChange = (areaName: string) => {
+    setSelectedArea(areaName);
+    setUsingGps(false);
+    if (areaName !== 'CUSTOM') {
+      const loc = getAreaLocation(areaName);
+      setIncidentCoords({ latitude: loc.latitude, longitude: loc.longitude });
+    }
+  };
+
+  const handleUseCurrentGps = () => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setIncidentCoords({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude
+          });
+          setUsingGps(true);
+        },
+        (err) => {
+          alert('GPS unavailable: ' + err.message);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
+  };
 
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -109,13 +146,17 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
     setLoading(true);
     setError(null);
 
+    const fullDescription = landmark.trim()
+      ? `[${landmark.trim()}] ${description.trim()}`
+      : description.trim();
+
     const payload = {
       type,
       severity,
-      description: description.trim(),
-      latitude: coords.latitude,
-      longitude: coords.longitude,
-      area: currentArea,
+      description: fullDescription,
+      latitude: incidentCoords.latitude,
+      longitude: incidentCoords.longitude,
+      area: selectedArea,
       photo_url: photoUrl || undefined,
       audio_url: audioUrl || undefined
     };
@@ -159,7 +200,7 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
               </h3>
               <p className="text-xs text-slate-300 flex items-center gap-1">
                 <MapPin className="w-3.5 h-3.5 text-amber-400" />
-                {currentArea}
+                <span>{selectedArea}</span>
               </p>
             </div>
           </div>
@@ -179,13 +220,13 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
             </h4>
             <p className="text-xs text-slate-300 mt-1 max-w-xs">
               {language === 'ta'
-                ? 'நேரலை வரைபடத்தில் இந்த விவரம் சேர்க்கப்பட்டுள்ளது.'
-                : 'Visible immediately on the disaster response map.'}
+                ? `நேரலை வரைபடத்தில் ${selectedArea} பகுதியில் இந்த விவரம் சேர்க்கப்பட்டுள்ளது.`
+                : `Visible immediately at ${selectedArea} on the disaster response map.`}
             </p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-            {/* Type selector */}
+            {/* 1. Incident Type */}
             <div>
               <label className="block text-xs font-bold text-slate-200 uppercase mb-2">
                 1. {language === 'ta' ? 'விபத்து வகை' : 'Incident Type'}
@@ -215,10 +256,72 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
               </div>
             </div>
 
-            {/* Severity */}
+            {/* 2. Select Location & Specific Locality */}
+            <div className="p-3.5 rounded-xl bg-slate-800/80 border border-slate-700 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold text-slate-200 uppercase flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-emerald-400" />
+                  <span>2. {language === 'ta' ? 'விபத்து இடம் / பகுதி தேர்வு' : 'Select Incident Location'}</span>
+                </label>
+
+                <button
+                  type="button"
+                  onClick={handleUseCurrentGps}
+                  className="text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 bg-slate-900/80 px-2 py-1 rounded-lg border border-emerald-500/30 active:scale-95 transition-all"
+                >
+                  <Navigation className="w-3 h-3 text-emerald-400" />
+                  <span>{language === 'ta' ? 'என் GPS இருப்பிடம்' : 'Use Current GPS'}</span>
+                </button>
+              </div>
+
+              {/* Area Select Dropdown */}
+              <div>
+                <select
+                  value={CHENNAI_AREAS.some(a => a.name === selectedArea) ? selectedArea : 'CUSTOM'}
+                  onChange={(e) => handleAreaChange(e.target.value)}
+                  className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-xs text-white focus:border-emerald-500 outline-none transition-colors"
+                >
+                  {CHENNAI_AREAS.map((a) => (
+                    <option key={a.name} value={a.name}>
+                      📍 {a.name} ({a.nameTa}) — {a.zone}
+                    </option>
+                  ))}
+                  <option value="CUSTOM">✏️ {language === 'ta' ? 'வேறு பகுதி (கீழே குறிப்பிடவும்)' : 'Other Locality (Type below)'}</option>
+                </select>
+              </div>
+
+              {/* Specific Street Address / Landmark */}
+              <div>
+                <input
+                  type="text"
+                  value={landmark}
+                  onChange={(e) => setLandmark(e.target.value)}
+                  placeholder={language === 'ta' ? 'குறிப்பிட்ட தெரு, மைல்கல் (எ.கா: 100 அடி சாலை, MRTS நிலையம் அருகில்)' : 'Specific landmark / street (e.g. 100 Feet Rd, near MRTS)'}
+                  className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-xs text-white focus:border-emerald-500 outline-none placeholder-slate-400"
+                />
+              </div>
+
+              {/* Coordinate indicator badge */}
+              <div className="flex items-center justify-between text-[11px] text-slate-400 px-1 pt-0.5">
+                <span>
+                  Coordinates: <span className="text-slate-200 font-mono">{incidentCoords.latitude.toFixed(4)}, {incidentCoords.longitude.toFixed(4)}</span>
+                </span>
+                {usingGps ? (
+                  <span className="text-emerald-400 font-bold flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> GPS Active
+                  </span>
+                ) : (
+                  <span className="text-slate-400 text-[10px]">
+                    📍 Centered on {selectedArea}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* 3. Severity Level */}
             <div>
               <label className="block text-xs font-bold text-slate-200 uppercase mb-2">
-                2. {language === 'ta' ? 'தீவிரம்' : 'Severity Level'}
+                3. {language === 'ta' ? 'தீவிரம்' : 'Severity Level'}
               </label>
               <div className="grid grid-cols-4 gap-2">
                 {(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as SeverityLevel[]).map((lvl) => (
@@ -229,8 +332,8 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
                     className={`py-2 rounded-xl text-xs font-bold transition-all border ${
                       severity === lvl
                         ? lvl === 'CRITICAL'
-                          ? 'bg-red-600 text-white border-red-500'
-                          : 'bg-amber-600 text-white border-amber-500'
+                          ? 'bg-red-600 text-white border-red-500 shadow-sm'
+                          : 'bg-amber-600 text-white border-amber-500 shadow-sm'
                         : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
                     }`}
                   >
@@ -240,10 +343,10 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
               </div>
             </div>
 
-            {/* Description */}
+            {/* 4. Description */}
             <div>
               <label className="block text-xs font-bold text-slate-200 uppercase mb-1.5">
-                3. {language === 'ta' ? 'விவரம்' : 'Details / Remarks'}
+                4. {language === 'ta' ? 'விவரம்' : 'Details / Remarks'}
               </label>
               <textarea
                 value={description}

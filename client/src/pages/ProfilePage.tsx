@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext.js';
-import { api } from '../services/api.js';
-import { User, Phone, MapPin, Globe, Shield, LifeBuoy, CheckCircle2, UserCheck, Key, ShieldAlert } from 'lucide-react';
+import { User, Phone, MapPin, Globe, Shield, LifeBuoy, CheckCircle2, Key, ShieldAlert } from 'lucide-react';
 import { UserRole } from '../types/index.js';
+import { CHENNAI_AREAS } from '../constants/areas.js';
 
 export const ProfilePage: React.FC = () => {
-  const { user, profile, role, language, switchDemoRole, refreshProfile } = useAuth();
+  const { user, profile, role, language, switchDemoRole, updateProfile } = useAuth();
 
   const [name, setName] = useState(profile?.name || 'Kavitha Ramachandran');
   const [mobile, setMobile] = useState(profile?.mobile_number || '+91 98765 43210');
@@ -14,24 +14,33 @@ export const ProfilePage: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
+  // Sync inputs whenever profile data loads or updates
+  useEffect(() => {
+    if (profile) {
+      if (profile.name) setName(profile.name);
+      if (profile.mobile_number) setMobile(profile.mobile_number);
+      if (profile.area) setArea(profile.area);
+      if (profile.preferred_language) {
+        setPrefLang(profile.preferred_language as 'ta' | 'en');
+      }
+    }
+  }, [profile]);
+
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
     setSaving(true);
 
     try {
-      await api.updateProfile({
-        user_id: user.id,
-        name,
-        mobile_number: mobile,
-        area,
+      await updateProfile({
+        name: name.trim(),
+        mobile_number: mobile.trim(),
+        area: area.trim(),
         preferred_language: prefLang
       });
-      await refreshProfile();
       setSavedSuccess(true);
-      setTimeout(() => setSavedSuccess(false), 2000);
+      setTimeout(() => setSavedSuccess(false), 3000);
     } catch (err: any) {
-      alert('Save profile failed: ' + err.message);
+      alert('Save profile failed: ' + (err.message || 'Unknown error'));
     } finally {
       setSaving(false);
     }
@@ -55,11 +64,136 @@ export const ProfilePage: React.FC = () => {
           </h1>
           <p className="text-xs text-slate-300 mt-1">
             {language === 'ta'
-              ? 'உங்கள் தொடர்பு விவரங்கள், பகுதி மற்றும் மொழி விருப்பங்கள்.'
-              : 'Manage your contact details, locality, and emergency contact preferences.'}
+              ? 'உங்கள் பெயர், தொடர்பு எண் மற்றும் வசிக்கும் பகுதியை இங்கு மாற்றிக் கொள்ளலாம்.'
+              : 'Update your name, contact details, locality, and disaster language preferences.'}
           </p>
         </div>
+
+        <div className="text-right hidden sm:block">
+          <span className="text-xs font-bold text-emerald-400 block">{profile?.name || name}</span>
+          <span className="text-[11px] text-slate-400 block">📍 {profile?.area || area}</span>
+        </div>
       </div>
+
+      {/* Edit Profile Form */}
+      <form onSubmit={handleSaveProfile} className="p-6 rounded-2xl bg-slate-800/80 border border-slate-700 shadow-sm space-y-4">
+        <div className="flex items-center justify-between pb-2 border-b border-slate-700/60">
+          <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-emerald-400" />
+            <span>{language === 'ta' ? 'தனிநபர் விவரங்கள் & பகுதி' : 'Personal Details & Location'}</span>
+          </h2>
+          <span className="text-[11px] text-slate-400">
+            {language === 'ta' ? 'உடனடி சேமிப்பு' : 'Live Saved'}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Full Name */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 mb-1">
+              {language === 'ta' ? 'முழுப் பெயர்' : 'Full Name'}
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Vishwa / Kavitha"
+              required
+              className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-xs text-white focus:border-emerald-500 outline-none transition-colors"
+            />
+          </div>
+
+          {/* Phone Number */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 mb-1">
+              {language === 'ta' ? 'கைபேசி எண்' : 'Phone Number'}
+            </label>
+            <input
+              type="tel"
+              value={mobile}
+              onChange={(e) => setMobile(e.target.value)}
+              placeholder="e.g. +91 98765 43210"
+              required
+              className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-xs text-white focus:border-emerald-500 outline-none transition-colors"
+            />
+          </div>
+
+          {/* Locality / Ward (Selection & Custom) */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 mb-1">
+              {language === 'ta' ? 'முதன்மை பகுதி / வட்டம்' : 'Main Locality / Area'}
+            </label>
+            <select
+              value={CHENNAI_AREAS.some(a => a.name === area) ? area : 'CUSTOM'}
+              onChange={(e) => {
+                if (e.target.value !== 'CUSTOM') {
+                  setArea(e.target.value);
+                }
+              }}
+              className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-xs text-white focus:border-emerald-500 outline-none transition-colors mb-2"
+            >
+              {CHENNAI_AREAS.map((a) => (
+                <option key={a.name} value={a.name}>
+                  📍 {a.name} ({a.nameTa}) - {a.zone}
+                </option>
+              ))}
+              <option value="CUSTOM">✏️ {language === 'ta' ? 'வேறு பகுதி (கீழே தட்டச்சு செய்யவும்)' : 'Other Locality (Type below)'}</option>
+            </select>
+
+            <input
+              type="text"
+              value={area}
+              onChange={(e) => setArea(e.target.value)}
+              placeholder={language === 'ta' ? 'பகுதி பெயரை உள்ளிடவும்...' : 'Enter your area name...'}
+              required
+              className="w-full rounded-xl bg-slate-900/90 border border-slate-700/80 px-3.5 py-2 text-xs text-slate-200 focus:border-emerald-500 outline-none"
+            />
+          </div>
+
+          {/* Preferred Language */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 mb-1">
+              {language === 'ta' ? 'விருப்பமான மொழி' : 'Preferred Language'}
+            </label>
+            <select
+              value={prefLang}
+              onChange={(e: any) => setPrefLang(e.target.value)}
+              className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-xs text-white focus:border-emerald-500 outline-none transition-colors"
+            >
+              <option value="ta">தமிழ் (Tamil)</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+        </div>
+
+        {savedSuccess && (
+          <div className="p-3 rounded-xl bg-emerald-950/80 border border-emerald-500 text-emerald-300 text-xs font-bold flex items-center gap-2 animate-in fade-in duration-200">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <span>
+              {language === 'ta'
+                ? `சுயவிவரம் மாற்றப்பட்டது! பகுதி: ${area}`
+                : `Profile & Location saved! Active area updated to ${area}.`}
+            </span>
+          </div>
+        )}
+
+        <div className="pt-2">
+          <button
+            type="submit"
+            disabled={saving}
+            className="w-full sm:w-auto py-3 px-8 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-md active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            {saving ? (
+              <span>{language === 'ta' ? 'சேமிக்கப்படுகிறது...' : 'Saving...'}</span>
+            ) : (
+              <>
+                <CheckCircle2 className="w-4 h-4" />
+                <span>{language === 'ta' ? 'விவரங்களைச் சேமி' : 'Save Profile Changes'}</span>
+              </>
+            )}
+          </button>
+        </div>
+      </form>
 
       {/* Role Switcher Section */}
       <div className="p-5 rounded-2xl bg-slate-800/80 border border-slate-700 shadow-sm space-y-3">
@@ -117,75 +251,6 @@ export const ProfilePage: React.FC = () => {
           })}
         </div>
       </div>
-
-      {/* Edit Profile Form */}
-      <form onSubmit={handleSaveProfile} className="p-6 rounded-2xl bg-slate-800/80 border border-slate-700 shadow-sm space-y-4">
-        <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-          Update Contact & Locality Details
-        </h2>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">Full Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-xs text-white focus:border-emerald-500 outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">Phone Number</label>
-            <input
-              type="tel"
-              value={mobile}
-              onChange={(e) => setMobile(e.target.value)}
-              required
-              className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-xs text-white focus:border-emerald-500 outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">Locality / Ward</label>
-            <input
-              type="text"
-              value={area}
-              onChange={(e) => setArea(e.target.value)}
-              required
-              className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-xs text-white focus:border-emerald-500 outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">Preferred Language</label>
-            <select
-              value={prefLang}
-              onChange={(e: any) => setPrefLang(e.target.value)}
-              className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-xs text-white focus:border-emerald-500 outline-none"
-            >
-              <option value="ta">தமிழ் (Tamil)</option>
-              <option value="en">English</option>
-            </select>
-          </div>
-        </div>
-
-        {savedSuccess && (
-          <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 text-xs font-semibold flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            Profile updated successfully!
-          </div>
-        )}
-
-        <button
-          type="submit"
-          disabled={saving}
-          className="py-3 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm active:scale-95 transition-all"
-        >
-          {saving ? 'Saving...' : 'Save Profile'}
-        </button>
-      </form>
     </div>
   );
 };

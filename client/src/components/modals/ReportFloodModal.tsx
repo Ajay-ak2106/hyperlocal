@@ -11,9 +11,10 @@ import {
   X,
   CheckCircle2,
   Loader2,
-  Info
+  Navigation
 } from 'lucide-react';
 import { offlineManager } from '../../services/offline.js';
+import { CHENNAI_AREAS, getAreaLocation } from '../../constants/areas.js';
 
 interface ReportFloodModalProps {
   isOpen: boolean;
@@ -26,6 +27,14 @@ export const ReportFloodModal: React.FC<ReportFloodModalProps> = ({ isOpen, onCl
 
   const [condition, setCondition] = useState<FloodCondition>('WATER_ON_ROAD');
   const [description, setDescription] = useState('');
+  const [selectedArea, setSelectedArea] = useState<string>(currentArea || 'Velachery');
+  const [landmark, setLandmark] = useState<string>('');
+  const [floodCoords, setFloodCoords] = useState<{ latitude: number; longitude: number }>({
+    latitude: coords?.latitude || 12.9785,
+    longitude: coords?.longitude || 80.2215
+  });
+  const [usingGps, setUsingGps] = useState(false);
+
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
@@ -46,6 +55,33 @@ export const ReportFloodModal: React.FC<ReportFloodModalProps> = ({ isOpen, onCl
   ];
 
   const currentConditionConfig = conditions.find((c) => c.id === condition) || conditions[0];
+
+  const handleAreaChange = (areaName: string) => {
+    setSelectedArea(areaName);
+    setUsingGps(false);
+    if (areaName !== 'CUSTOM') {
+      const loc = getAreaLocation(areaName);
+      setFloodCoords({ latitude: loc.latitude, longitude: loc.longitude });
+    }
+  };
+
+  const handleUseCurrentGps = () => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setFloodCoords({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude
+          });
+          setUsingGps(true);
+        },
+        (err) => {
+          alert('GPS unavailable: ' + err.message);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
+  };
 
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -114,13 +150,16 @@ export const ReportFloodModal: React.FC<ReportFloodModalProps> = ({ isOpen, onCl
       OTHER: 'MEDIUM'
     };
 
+    const details = description.trim() || `${currentConditionConfig.labelEn} reported in ${selectedArea} (${currentConditionConfig.est})`;
+    const fullDesc = landmark.trim() ? `[${landmark.trim()}] ${details}` : details;
+
     const payload = {
       type: 'FLOOD' as const,
       severity: severityMap[condition],
-      description: description.trim() || `${currentConditionConfig.labelEn} reported in ${currentArea} (${currentConditionConfig.est})`,
-      latitude: coords.latitude,
-      longitude: coords.longitude,
-      area: currentArea,
+      description: fullDesc,
+      latitude: floodCoords.latitude,
+      longitude: floodCoords.longitude,
+      area: selectedArea,
       photo_url: photoUrl || undefined,
       audio_url: audioUrl || undefined
     };
@@ -164,7 +203,7 @@ export const ReportFloodModal: React.FC<ReportFloodModalProps> = ({ isOpen, onCl
               </h3>
               <p className="text-xs text-slate-300 flex items-center gap-1">
                 <MapPin className="w-3.5 h-3.5 text-sky-400" />
-                {currentArea}
+                <span>{selectedArea}</span>
               </p>
             </div>
           </div>
@@ -184,13 +223,13 @@ export const ReportFloodModal: React.FC<ReportFloodModalProps> = ({ isOpen, onCl
             </h4>
             <p className="text-xs text-slate-300 mt-1 max-w-xs">
               {language === 'ta'
-                ? 'நேரலை வரைபடத்தில் இந்த விவரம் சேர்க்கப்பட்டுள்ளது.'
-                : 'The live disaster map and flood dashboard have been updated.'}
+                ? `நேரலை வரைபடத்தில் ${selectedArea} பகுதியில் இந்த விவரம் சேர்க்கப்பட்டுள்ளது.`
+                : `The live disaster map and flood dashboard for ${selectedArea} have been updated.`}
             </p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-            {/* Condition selection */}
+            {/* 1. Condition selection */}
             <div>
               <label className="block text-xs font-bold text-slate-200 uppercase mb-2">
                 1. {language === 'ta' ? 'வெள்ளத்தின் அளவு' : 'Water Level Condition'}
@@ -221,7 +260,87 @@ export const ReportFloodModal: React.FC<ReportFloodModalProps> = ({ isOpen, onCl
               </div>
             </div>
 
-            {/* Photo / Voice Upload */}
+            {/* 2. Select Location & Specific Locality */}
+            <div className="p-3.5 rounded-xl bg-slate-800/80 border border-slate-700 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold text-slate-200 uppercase flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-sky-400" />
+                  <span>2. {language === 'ta' ? 'வெள்ளப் பகுதி தேர்வு' : 'Select Flood Location'}</span>
+                </label>
+
+                <button
+                  type="button"
+                  onClick={handleUseCurrentGps}
+                  className="text-[11px] font-semibold text-sky-400 hover:text-sky-300 flex items-center gap-1 bg-slate-900/80 px-2 py-1 rounded-lg border border-sky-500/30 active:scale-95 transition-all"
+                >
+                  <Navigation className="w-3 h-3 text-sky-400" />
+                  <span>{language === 'ta' ? 'என் GPS இருப்பிடம்' : 'Use Current GPS'}</span>
+                </button>
+              </div>
+
+              {/* Area Select Dropdown */}
+              <div>
+                <select
+                  value={CHENNAI_AREAS.some(a => a.name === selectedArea) ? selectedArea : 'CUSTOM'}
+                  onChange={(e) => handleAreaChange(e.target.value)}
+                  className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-xs text-white focus:border-sky-500 outline-none transition-colors"
+                >
+                  {CHENNAI_AREAS.map((a) => (
+                    <option key={a.name} value={a.name}>
+                      📍 {a.name} ({a.nameTa}) — {a.zone}
+                    </option>
+                  ))}
+                  <option value="CUSTOM">✏️ {language === 'ta' ? 'வேறு பகுதி (கீழே குறிப்பிடவும்)' : 'Other Locality / Street'}</option>
+                </select>
+              </div>
+
+              {/* Specific Street Address / Landmark */}
+              <div>
+                <input
+                  type="text"
+                  value={landmark}
+                  onChange={(e) => setLandmark(e.target.value)}
+                  placeholder={language === 'ta' ? 'குறிப்பிட்ட தெரு, சாலை மைல்கல் (எ.கா: ராம் நகர், ஏரி பாலம் அருகில்)' : 'Specific street / landmark (e.g. Ram Nagar, Lake bridge)'}
+                  className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-xs text-white focus:border-sky-500 outline-none placeholder-slate-400"
+                />
+              </div>
+
+              {/* Coordinate indicator badge */}
+              <div className="flex items-center justify-between text-[11px] text-slate-400 px-1 pt-0.5">
+                <span>
+                  Coordinates: <span className="text-slate-200 font-mono">{floodCoords.latitude.toFixed(4)}, {floodCoords.longitude.toFixed(4)}</span>
+                </span>
+                {usingGps ? (
+                  <span className="text-sky-400 font-bold flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> GPS Active
+                  </span>
+                ) : (
+                  <span className="text-slate-400 text-[10px]">
+                    📍 Centered on {selectedArea}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* 3. Description */}
+            <div>
+              <label className="block text-xs font-bold text-slate-200 uppercase mb-1.5">
+                3. {language === 'ta' ? 'கூடுதல் விவரங்கள்' : 'Additional Remarks'}
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={2}
+                placeholder={
+                  language === 'ta'
+                    ? 'எ.கா: மோட்டார் பம்புகள் தேவை, தரை தள வீடுகளில் தண்ணீர் புகுந்துள்ளது...'
+                    : 'e.g. Inflow from surplus canal, ground floor apartments waterlogged...'
+                }
+                className="w-full rounded-xl bg-slate-800 border border-slate-700 p-3 text-xs text-white placeholder-slate-400 focus:border-sky-500 outline-none"
+              />
+            </div>
+
+            {/* Photo & Audio */}
             <div className="grid grid-cols-2 gap-2">
               <label className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 cursor-pointer text-xs font-semibold text-slate-200 transition-colors">
                 <Camera className="w-4 h-4 text-sky-400" />
@@ -251,38 +370,19 @@ export const ReportFloodModal: React.FC<ReportFloodModalProps> = ({ isOpen, onCl
               </button>
             </div>
 
-            {/* Landmark notes */}
-            <div>
-              <label className="block text-xs font-bold text-slate-200 uppercase mb-1.5">
-                2. {language === 'ta' ? 'அடையாளம் / தெரு விவரம் (விருப்பத்தேர்வு)' : 'Landmark / Street Details (Optional)'}
-              </label>
-              <input
-                type="text"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder={
-                  language === 'ta'
-                    ? 'எ.கா: வேளச்சேரி பிரதான சாலை, பேருந்து நிறுத்தம் அருகில்...'
-                    : 'e.g. Near Velachery main road, 2.5 ft water, impassable for cars...'
-                }
-                className="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-xs text-white placeholder-slate-400 focus:border-sky-500 outline-none"
-              />
-            </div>
-
             {error && (
               <p className="text-xs text-red-300 bg-red-950/60 p-2.5 rounded-xl border border-red-700/60">
                 {error}
               </p>
             )}
 
-            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
               className="w-full py-3.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 active:scale-98 transition-all"
             >
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Waves className="w-5 h-5" />}
-              <span>{language === 'ta' ? 'வெள்ள அறிக்கையை சமர்ப்பிக்கவும்' : 'Submit Flood Report'}</span>
+              <span>{language === 'ta' ? 'வெள்ள அறிக்கை சமர்ப்பிக்கவும்' : 'Submit Flood Report'}</span>
             </button>
           </form>
         )}

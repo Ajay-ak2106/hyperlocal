@@ -14,6 +14,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { offlineManager } from '../../services/offline.js';
+import { CHENNAI_AREAS } from '../../constants/areas.js';
 
 export const Header: React.FC = () => {
   const { role, language, currentArea, gpsActive, switchDemoRole, toggleLanguage, setCurrentArea, requestGps } = useAuth();
@@ -27,8 +28,6 @@ export const Header: React.FC = () => {
   useEffect(() => {
     return offlineManager.subscribe((count) => setOfflineCount(count));
   }, []);
-
-  const areas = ['Velachery', 'Tambaram', 'Pallikaranai', 'Madipakkam', 'Saidapet', 'Adyar', 'Perungudi', 'Medavakkam', 'T. Nagar'];
 
   const roleLabels: Record<UserRole, { label: string; icon: any; color: string }> = {
     CITIZEN: { label: 'Citizen', icon: User, color: 'bg-emerald-950/70 text-emerald-300 border-emerald-600/40' },
@@ -239,21 +238,22 @@ export const Header: React.FC = () => {
                 : 'Select your Chennai locality to see nearby shelters and emergency alerts:'}
             </p>
 
-            <div className="grid grid-cols-2 gap-2 mb-4">
-              {areas.map((a) => (
+            <div className="grid grid-cols-2 gap-2 mb-4 max-h-60 overflow-y-auto pr-1">
+              {CHENNAI_AREAS.map((a) => (
                 <button
-                  key={a}
+                  key={a.name}
                   onClick={() => {
-                    setCurrentArea(a);
+                    setCurrentArea(a.name);
                     setShowAreaModal(false);
                   }}
                   className={`p-2.5 rounded-xl border text-xs font-semibold transition-all text-left ${
-                    currentArea === a
+                    currentArea === a.name
                       ? 'bg-emerald-600/20 border-emerald-500 text-emerald-300 font-bold'
                       : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700'
                   }`}
                 >
-                  📍 {a}
+                  <div className="font-bold text-white">📍 {a.name}</div>
+                  <div className="text-[10px] text-slate-400">{a.nameTa} • {a.zone}</div>
                 </button>
               ))}
             </div>
