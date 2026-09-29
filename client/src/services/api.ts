@@ -42,6 +42,17 @@ async function resilientCall<T>(
   fallback: () => T | Promise<T>,
   name: string
 ): Promise<T> {
+  const hasCustomApi = Boolean(import.meta.env.VITE_API_URL);
+  const isLocalDev =
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+  // On cloud deployments (Vercel, GitHub Pages, etc.) without an external API URL,
+  // directly serve and mutate the rich in-browser disaster store for 0ms latency & 0 errors.
+  if (!hasCustomApi && !isLocalDev) {
+    return await fallback();
+  }
+
   try {
     return await fetcher();
   } catch (err: any) {
