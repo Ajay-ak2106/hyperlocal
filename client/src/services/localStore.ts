@@ -16,7 +16,7 @@ import {
   Profile
 } from '../types/index.js';
 
-const STORAGE_KEY = 'namma_rescue_offline_store_v4';
+const STORAGE_KEY = 'namma_rescue_offline_store_v5';
 
 const initialIncidents: Incident[] = [
   {
@@ -685,18 +685,17 @@ interface StoreData {
   checkins: SafetyCheckin[];
   campaigns: FundCampaign[];
   contacts: EmergencyContact[];
+  donations: any[];
   notifications: AppNotification[];
   currentUser: { user: User; profile: Profile; volunteer?: Volunteer; token: string };
 }
 
 function loadInitialStore(): StoreData {
+  let parsed: any = null;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && Array.isArray(parsed.incidents) && parsed.incidents.length > 0) {
-        return parsed;
-      }
+      parsed = JSON.parse(raw);
     }
   } catch (e) {
     console.warn('Error reading from localStorage store:', e);
@@ -724,18 +723,19 @@ function loadInitialStore(): StoreData {
   };
 
   return {
-    incidents: initialIncidents,
-    shelters: initialShelters,
-    resources: initialResources,
-    assistance: initialAssistance,
-    volunteers: initialVolunteers,
-    floodReports: initialFloodReports,
-    communityGroups: initialCommunityGroups,
-    communityPosts: initialCommunityPosts,
-    checkins: initialCheckins,
-    campaigns: initialCampaigns,
-    contacts: initialContacts,
-    notifications: [
+    incidents: Array.isArray(parsed?.incidents) && parsed.incidents.length > 0 ? parsed.incidents : initialIncidents,
+    shelters: Array.isArray(parsed?.shelters) && parsed.shelters.length > 0 ? parsed.shelters : initialShelters,
+    resources: Array.isArray(parsed?.resources) && parsed.resources.length > 0 ? parsed.resources : initialResources,
+    assistance: Array.isArray(parsed?.assistance) ? parsed.assistance : initialAssistance,
+    volunteers: Array.isArray(parsed?.volunteers) ? parsed.volunteers : initialVolunteers,
+    floodReports: Array.isArray(parsed?.floodReports) ? parsed.floodReports : initialFloodReports,
+    communityGroups: Array.isArray(parsed?.communityGroups) ? parsed.communityGroups : initialCommunityGroups,
+    communityPosts: Array.isArray(parsed?.communityPosts) ? parsed.communityPosts : initialCommunityPosts,
+    checkins: Array.isArray(parsed?.checkins) ? parsed.checkins : initialCheckins,
+    campaigns: Array.isArray(parsed?.campaigns) ? parsed.campaigns : initialCampaigns,
+    contacts: Array.isArray(parsed?.contacts) ? parsed.contacts : initialContacts,
+    donations: Array.isArray(parsed?.donations) ? parsed.donations : [],
+    notifications: Array.isArray(parsed?.notifications) ? parsed.notifications : [
       {
         id: 'notif-1',
         title: '⚠️ Red Alert: Heavy Downpour in South Chennai',
@@ -745,7 +745,7 @@ function loadInitialStore(): StoreData {
         created_at: new Date().toISOString()
       }
     ],
-    currentUser: {
+    currentUser: (parsed?.currentUser?.user && parsed?.currentUser?.profile) ? parsed.currentUser : {
       user: defaultUser,
       profile: defaultProfile,
       token: 'demo-token-123'
@@ -1108,7 +1108,7 @@ export const localStore = {
 
   // Safety
   getSafetyStats: (community_id?: string): { summary: SafetySummary; checkins: SafetyCheckin[] } => {
-    const checkins = [...store.checkins];
+    const checkins = [...(store.checkins || [])];
     const summary: SafetySummary = {
       SAFE: checkins.filter(c => c.status === 'SAFE').length,
       NEED_HELP: checkins.filter(c => c.status === 'NEED_HELP').length,
@@ -1136,6 +1136,7 @@ export const localStore = {
       updated_at: new Date().toISOString()
     };
 
+    if (!Array.isArray(store.checkins)) store.checkins = [];
     // Replace if same user checkin exists
     const idx = store.checkins.findIndex(c => c.user_id === checkin.user_id);
     if (idx !== -1) {
@@ -1156,9 +1157,10 @@ export const localStore = {
 
   // Notifications
   getNotifications: (user_id?: string): AppNotification[] => {
-    return [...store.notifications];
+    return [...(store.notifications || [])];
   },
   markNotificationRead: (id: string): AppNotification => {
+    if (!Array.isArray(store.notifications)) store.notifications = [];
     const idx = store.notifications.findIndex(n => n.id === id);
     if (idx !== -1) {
       store.notifications[idx].is_read = 1;
@@ -1168,6 +1170,7 @@ export const localStore = {
     throw new Error('Notification not found');
   },
   markAllNotificationsRead: (user_id?: string): { success: boolean } => {
+    if (!Array.isArray(store.notifications)) store.notifications = [];
     store.notifications.forEach(n => { n.is_read = 1; });
     persist();
     return { success: true };
@@ -1176,8 +1179,8 @@ export const localStore = {
   // Funds
   getFunds: (): { campaigns: FundCampaign[]; donations: any[]; disclaimer: string } => {
     return {
-      campaigns: [...store.campaigns],
-      donations: [],
+      campaigns: [...(store.campaigns || [])],
+      donations: [...(store.donations || [])],
       disclaimer: 'Tamil Nadu State Relief Fund Direct Integration (Demo Mode active)'
     };
   },

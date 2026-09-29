@@ -147,7 +147,13 @@ export const IncidentMap: React.FC<IncidentMapProps> = ({
     }
   };
 
+  const centerLat = (typeof coords?.latitude === 'number' && !isNaN(coords.latitude)) ? coords.latitude : 12.9780;
+  const centerLng = (typeof coords?.longitude === 'number' && !isNaN(coords.longitude)) ? coords.longitude : 80.2210;
+
   const filteredIncidents = incidents.filter((inc) => {
+    if (!inc || typeof inc.latitude !== 'number' || isNaN(inc.latitude) || typeof inc.longitude !== 'number' || isNaN(inc.longitude)) {
+      return false;
+    }
     if (filter === 'ALL') return true;
     if (filter === 'CRITICAL') return inc.severity === 'CRITICAL';
     if (filter === 'FLOOD') return inc.type === 'FLOOD';
@@ -227,15 +233,15 @@ export const IncidentMap: React.FC<IncidentMapProps> = ({
         </div>
       </div>
 
-      {/* Main Leaflet Map with Natural CartoDB Voyager Tiles */}
+      {/* Main Leaflet Map with Natural OpenStreetMap Tiles */}
       <MapContainer
-        center={[coords.latitude, coords.longitude]}
+        center={[centerLat, centerLng]}
         zoom={13}
         scrollWheelZoom={true}
         style={{ width: '100%', height: '100%' }}
       >
         <MapResizeHandler />
-        <RecenterAutomatically lat={coords.latitude} lng={coords.longitude} />
+        <RecenterAutomatically lat={centerLat} lng={centerLng} />
 
         {/* 100% Free OpenStreetMap Natural Tiles - No API key required */}
         <TileLayer

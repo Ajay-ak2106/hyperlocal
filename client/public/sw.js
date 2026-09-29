@@ -1,17 +1,7 @@
-// NammaRescue Emergency Service Worker
-const CACHE_NAME = 'nammarescue-v1';
-const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json'
-];
+// NammaRescue Resilient Service Worker v3
+const CACHE_NAME = 'nammarescue-v3';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    })
-  );
   self.skipWaiting();
 });
 
@@ -21,6 +11,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
+            console.log('[SW] Purging outdated cache:', key);
             return caches.delete(key);
           }
         })
@@ -31,24 +22,28 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Pass API and WebSocket requests straight to network
-  if (event.request.url.includes('/api/') || event.request.url.includes('/ws')) {
-    return;
-  }
+  // Pass non-GET and API/WS calls straight to network
+  if (event.request.method !== 'GET') return;
+  if (event.request.url.includes('/api/') || event.request.url.includes('/ws')) return;
 
+  // Network-first strategy for HTML documents and assets
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).then((networkResponse) => {
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+        }
         return networkResponse;
-      }).catch(() => {
-        // Fallback to cache index.html for navigation when offline
+      })
+      .catch(async () => {
+        const cached = await caches.match(event.request);
+        if (cached) return cached;
         if (event.request.mode === 'navigate') {
           return caches.match('/index.html');
         }
-      });
-    })
+      })
   );
 });
