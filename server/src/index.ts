@@ -81,17 +81,15 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Setup Realtime WebSocket Server (when running standalone)
-if (!process.env.VERCEL) {
-  try {
-    setupRealtimeServer(server);
-  } catch (err) {
-    console.warn('Realtime server setup skipped:', err);
-  }
+// Setup Realtime WebSocket Server
+try {
+  setupRealtimeServer(server);
+} catch (err) {
+  console.warn('Realtime server setup note:', err);
 }
 
-// Start server when run directly (local development or container)
-if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
+// Start server
+if (process.env.NODE_ENV !== 'test') {
   getDatabase().then(() => {
     server.listen(PORT, () => {
       console.log(`
