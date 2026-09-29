@@ -2,39 +2,10 @@
   "name": "namma-rescue-root",
   "version": "1.0.0",
   "private": true,
-  "workspaces": [
-    "client",
-    "server"
-  ],
   "scripts": {
-    "build": "cd client && npm install && npm run build",
-    "build:client": "npm --prefix client run build",
-    "build:server": "npm --prefix server run build",
-    "dev": "npm --prefix client run dev",
+    "build": "npm --prefix client run build",
     "dev:server": "npm --prefix server run dev",
     "dev:client": "npm --prefix client run dev",
     "install:all": "npm --prefix server install && npm --prefix client install"
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.45.4",
-    "@vercel/node": "^3.2.14",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.21.0",
-    "multer": "^1.4.5-lts.1",
-    "sql.js": "^1.11.0",
-    "uuid": "^10.0.0",
-    "ws": "^8.18.0"
-  },
-  "devDependencies": {
-    "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
-    "@types/multer": "^1.4.12",
-    "@types/node": "^22.5.5",
-    "@types/sql.js": "^1.4.9",
-    "@types/uuid": "^10.0.0",
-    "@types/ws": "^8.5.12",
-    "tsx": "^4.19.1",
-    "typescript": "^5.6.2"
   }
 }
