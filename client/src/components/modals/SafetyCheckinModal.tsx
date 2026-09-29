@@ -13,7 +13,6 @@ interface SafetyCheckinModalProps {
 
 export const SafetyCheckinModal: React.FC<SafetyCheckinModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const { user, profile, currentArea, coords, language } = useAuth();
-  const [status, setStatus] = useState<SafetyStatus>('SAFE');
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -21,7 +20,6 @@ export const SafetyCheckinModal: React.FC<SafetyCheckinModalProps> = ({ isOpen, 
   if (!isOpen) return null;
 
   const handleSelectStatus = async (selectedStatus: SafetyStatus) => {
-    setStatus(selectedStatus);
     setLoading(true);
 
     try {
@@ -30,7 +28,7 @@ export const SafetyCheckinModal: React.FC<SafetyCheckinModalProps> = ({ isOpen, 
         user_name: profile?.name || 'Citizen',
         user_phone: profile?.mobile_number || '+91 98765 43210',
         status: selectedStatus,
-        note: note || (selectedStatus === 'SAFE' ? 'Reported safe in ward' : 'Needs attention'),
+        note: note || (selectedStatus === 'SAFE' ? 'Safe in current location' : 'Status reported'),
         area: currentArea,
         latitude: coords.latitude,
         longitude: coords.longitude,
@@ -59,114 +57,118 @@ export const SafetyCheckinModal: React.FC<SafetyCheckinModalProps> = ({ isOpen, 
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="w-full max-w-md rounded-2xl bg-cyber-panel border border-cyber-green/50 p-6 shadow-neon-green relative text-center">
-        <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-cyber-green"></div>
-        <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-cyber-green"></div>
-
-        <div className="flex justify-between items-center pb-3 border-b border-cyber-border font-mono">
-          <div className="flex items-center gap-2 text-cyber-green font-bold text-xs uppercase glow-text-green">
-            <ShieldCheck className="w-4 h-4 animate-pulse" />
-            [CIVIC HUD // {language === 'ta' ? 'பாதுகாப்பு சரிபார்ப்பு' : 'SAFETY TELEMETRY CHECK-IN'}]
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="w-full max-w-md rounded-2xl bg-slate-900 border border-slate-700 p-6 shadow-2xl relative text-center">
+        <div className="flex justify-between items-center pb-3 border-b border-slate-800">
+          <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase">
+            <ShieldCheck className="w-4 h-4" />
+            <span>{language === 'ta' ? 'பாதுகாப்பு பதிவு' : 'Citizen Safety Check-in'}</span>
           </div>
-          <button onClick={onClose} className="p-1 rounded text-slate-400 hover:text-white">
+          <button
+            onClick={onClose}
+            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {submitted ? (
-          <div className="py-10 flex flex-col items-center justify-center font-mono">
-            <CheckCircle2 className="w-16 h-16 text-cyber-green animate-bounce mb-3 glow-text-green" />
-            <h4 className="text-lg font-bold text-white uppercase">
-              {language === 'ta' ? 'உங்கள் நிலை பதிவு செய்யப்பட்டது!' : 'SAFETY TELEMETRY BROADCASTED!'}
+          <div className="py-10 flex flex-col items-center justify-center">
+            <CheckCircle2 className="w-16 h-16 text-emerald-400 mb-3" />
+            <h4 className="text-lg font-bold text-white">
+              {language === 'ta' ? 'உங்கள் நிலை பதிவு செய்யப்பட்டது!' : 'Safety Status Recorded!'}
             </h4>
-            <p className="text-xs text-slate-400 font-sans mt-1">
+            <p className="text-xs text-slate-300 mt-1">
               {language === 'ta'
-                ? 'சமூக பாதுகாப்பு பலகையில் எண்ணிக்கை உடனடியாகப் புதுப்பிக்கப்பட்டது.'
-                : 'Central Command & Ward HUD telemetry have been refreshed.'}
+                ? 'உங்கள் பாதுகாப்பு நிலை வெற்றிகரமாகப் பதிவு செய்யப்பட்டது.'
+                : 'Your status has been updated in the disaster management portal.'}
             </p>
           </div>
         ) : (
-          <div className="mt-5 space-y-4 font-mono">
-            <h3 className="text-base sm:text-lg font-mono font-bold text-white tracking-wide">
-              {language === 'ta' ? 'உங்கள் நிலைமை என்ன?' : 'TRANSMIT CURRENT OPERATIONAL STATUS:'}
-            </h3>
-            <p className="text-xs text-slate-400 max-w-xs mx-auto font-sans">
-              {language === 'ta'
-                ? 'உங்கள் பகுதிக்கான அவசர பாதுகாப்பு நிலையை ஒரு தட்டில் பதிவு செய்யவும்.'
-                : 'Broadcast verified coordinates & status instantly to NDRF/GCC incident roster.'}
-            </p>
+          <div className="mt-4 space-y-4 text-left">
+            <div>
+              <h3 className="text-base font-bold text-white">
+                {language === 'ta' ? 'உங்கள் பாதுகாப்பு நிலைமை என்ன?' : 'How are you doing right now?'}
+              </h3>
+              <p className="text-xs text-slate-300 mt-0.5">
+                {language === 'ta'
+                  ? `${currentArea} பகுதியில் உங்கள் நிலையை ஒரு தட்டில் பதிவு செய்யவும்.`
+                  : `One-tap safety check-in for ${currentArea}.`}
+              </p>
+            </div>
 
-            <div className="space-y-2.5 pt-2">
-              {/* Green Safe Button */}
+            <div className="space-y-2.5">
+              {/* Option 1: Safe */}
               <button
                 disabled={loading}
                 onClick={() => handleSelectStatus('SAFE')}
-                className="w-full py-3.5 px-4 rounded-xl bg-cyber-bg hover:bg-cyber-green/15 active:scale-98 text-white font-mono font-bold text-sm shadow-md hover:shadow-neon-green flex items-center justify-between transition-all touch-target border border-cyber-green/50 group"
+                className="w-full p-4 rounded-xl border border-emerald-500/40 bg-emerald-950/40 hover:bg-emerald-900/60 text-white flex items-center gap-3 transition-all active:scale-98 text-left shadow-sm"
               >
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">🟢</span>
-                  <div className="text-left">
-                    <div className="leading-tight group-hover:text-cyber-green">
-                      {language === 'ta' ? 'நான் பாதுகாப்பாக இருக்கிறேன்' : 'STATUS: SAFE // NOMINAL'}
-                    </div>
-                    <span className="text-[10px] font-sans text-slate-400">
-                      {language === 'ta' ? 'உணவு, குடிநீர் மற்றும் பாதுகாப்பு உள்ளது' : 'Shelter secure, food & water available'}
-                    </span>
+                <div className="w-10 h-10 rounded-full bg-emerald-600/30 flex items-center justify-center text-xl flex-shrink-0">
+                  🟢
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-emerald-300">
+                    {language === 'ta' ? 'நான் பாதுகாப்பாக உள்ளேன்' : 'I Am Safe'}
+                  </div>
+                  <div className="text-xs text-slate-300 mt-0.5">
+                    {language === 'ta' ? 'ஆபத்து ஏதுமில்லை, வீட்டில் உள்ளேன்' : 'Safe at home or relief shelter, no danger'}
                   </div>
                 </div>
-                <CheckCircle2 className="w-5 h-5 text-cyber-green stroke-[2.5px]" />
               </button>
 
-              {/* Yellow Need Help */}
+              {/* Option 2: Need Assistance */}
               <button
                 disabled={loading}
                 onClick={() => handleSelectStatus('NEED_HELP')}
-                className="w-full py-3.5 px-4 rounded-xl bg-cyber-bg hover:bg-cyber-amber/15 active:scale-98 text-white font-mono font-bold text-sm shadow-md hover:shadow-[0_0_15px_rgba(255,183,3,0.3)] flex items-center justify-between transition-all touch-target border border-cyber-amber/50 group"
+                className="w-full p-4 rounded-xl border border-amber-500/40 bg-amber-950/40 hover:bg-amber-900/60 text-white flex items-center gap-3 transition-all active:scale-98 text-left shadow-sm"
               >
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">🟡</span>
-                  <div className="text-left">
-                    <div className="leading-tight group-hover:text-cyber-amber">
-                      {language === 'ta' ? 'எனக்கு உதவி தேவை' : 'STATUS: ASSISTANCE REQUESTED'}
-                    </div>
-                    <span className="text-[10px] font-sans text-slate-400">
-                      {language === 'ta' ? 'உணவு, குடிநீர் அல்லது மீட்பு தேவை' : 'Requires rations, power, or non-critical aid'}
-                    </span>
+                <div className="w-10 h-10 rounded-full bg-amber-600/30 flex items-center justify-center text-xl flex-shrink-0">
+                  🟡
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-amber-300">
+                    {language === 'ta' ? 'உதவி தேவைப்படுகிறது' : 'Need Food / Water / Medicine'}
+                  </div>
+                  <div className="text-xs text-slate-300 mt-0.5">
+                    {language === 'ta' ? 'அத்தியாவசியப் பொருட்கள் தேவை' : 'Need non-critical supplies or charging'}
                   </div>
                 </div>
-                <AlertTriangle className="w-5 h-5 text-cyber-amber stroke-[2.5px]" />
               </button>
 
-              {/* Red Emergency */}
+              {/* Option 3: Critical Danger */}
               <button
                 disabled={loading}
                 onClick={() => handleSelectStatus('EMERGENCY')}
-                className="w-full py-3.5 px-4 rounded-xl bg-cyber-red/20 hover:bg-cyber-red active:scale-98 text-white font-mono font-bold text-sm shadow-neon-red flex items-center justify-between transition-all touch-target border border-cyber-red animate-pulse group"
+                className="w-full p-4 rounded-xl border border-red-500/40 bg-red-950/40 hover:bg-red-900/60 text-white flex items-center gap-3 transition-all active:scale-98 text-left shadow-sm"
               >
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">🔴</span>
-                  <div className="text-left">
-                    <div className="leading-tight text-cyber-red group-hover:text-white">
-                      {language === 'ta' ? 'அவசர ஆபத்தில் உள்ளேன்' : 'CRITICAL SOS // LIFE THREAT'}
-                    </div>
-                    <span className="text-[10px] font-sans text-slate-300">
-                      {language === 'ta' ? 'உடனடி மீட்பு தேவைப்படுகிறது' : 'Immediate boat evacuation or paramedic sortie'}
-                    </span>
+                <div className="w-10 h-10 rounded-full bg-red-600/30 flex items-center justify-center text-xl flex-shrink-0">
+                  🔴
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-red-300">
+                    {language === 'ta' ? 'ஆபத்தான நிலையில் உள்ளேன் (SOS)' : 'In Immediate Danger / Rescue Needed'}
+                  </div>
+                  <div className="text-xs text-slate-300 mt-0.5">
+                    {language === 'ta' ? 'வெள்ளம் சூழ்ந்துள்ளது, படகு மீட்பு தேவை' : 'Water entered house, urgent boat rescue needed'}
                   </div>
                 </div>
-                <AlertOctagon className="w-5 h-5 text-cyber-red group-hover:text-white stroke-[2.5px]" />
               </button>
             </div>
 
             {/* Optional note */}
-            <input
-              type="text"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder={language === 'ta' ? 'கூடுதல் தகவல் (விருப்பத்தேர்வு)...' : 'Tactical note (e.g. stranded on 2nd floor, elderly inside)...'}
-              className="w-full mt-3 rounded bg-cyber-bg border border-cyber-border px-3 py-2 text-xs text-white placeholder-slate-500 font-sans focus:border-cyber-green outline-none"
-            />
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">
+                {language === 'ta' ? 'கூடுதல் விவரம் (விருப்பத்தேர்வு):' : 'Optional note:'}
+              </label>
+              <input
+                type="text"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder={language === 'ta' ? 'எ.கா: 2-ம் தளத்தில் உள்ளோம்' : 'e.g. Safe on 2nd floor with 2 family members'}
+                className="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-xs text-white placeholder-slate-400 focus:border-emerald-500 outline-none"
+              />
+            </div>
           </div>
         )}
       </div>

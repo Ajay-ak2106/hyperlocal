@@ -14,7 +14,6 @@ import {
   Accessibility,
   Car,
   Zap,
-  PhoneCall,
   UserX,
   AlertTriangle,
   Camera,
@@ -50,23 +49,21 @@ export const RequestHelpModal: React.FC<RequestHelpModalProps> = ({ isOpen, onCl
 
   if (!isOpen) return null;
 
-  const categories: { id: HelpCategory; labelTa: string; labelEn: string; icon: any; color: string }[] = [
-    { id: 'MEDICAL', labelTa: 'மருத்துவம்', labelEn: 'Medical', icon: HeartPulse, color: 'border-rose-500 bg-rose-500/20 text-rose-300' },
-    { id: 'AMBULANCE', labelTa: 'ஆம்புலன்ஸ்', labelEn: 'Ambulance', icon: Ambulance, color: 'border-red-500 bg-red-500/20 text-red-300' },
-    { id: 'RESCUE', labelTa: 'மீட்புப் பணி', labelEn: 'Rescue Boat', icon: LifeBuoy, color: 'border-sky-500 bg-sky-500/20 text-sky-300' },
-    { id: 'FOOD', labelTa: 'உணவு', labelEn: 'Food Packs', icon: Utensils, color: 'border-amber-500 bg-amber-500/20 text-amber-300' },
-    { id: 'WATER', labelTa: 'குடிநீர்', labelEn: 'Drinking Water', icon: Droplet, color: 'border-blue-500 bg-blue-500/20 text-blue-300' },
-    { id: 'SHELTER', labelTa: 'தங்குமிடம்', labelEn: 'Shelter', icon: Home, color: 'border-emerald-500 bg-emerald-500/20 text-emerald-300' },
-    { id: 'ELDERLY', labelTa: 'முதியோர் உதவி', labelEn: 'Elderly Aid', icon: UserCheck, color: 'border-purple-500 bg-purple-500/20 text-purple-300' },
-    { id: 'CHILD', labelTa: 'குழந்தைகள்', labelEn: 'Child Care', icon: Baby, color: 'border-pink-500 bg-pink-500/20 text-pink-300' },
-    { id: 'DISABILITY', labelTa: 'மாற்றுத்திறனாளி', labelEn: 'Disability Aid', icon: Accessibility, color: 'border-indigo-500 bg-indigo-500/20 text-indigo-300' },
-    { id: 'TRANSPORT', labelTa: 'போக்குவரத்து', labelEn: 'Transport', icon: Car, color: 'border-cyan-500 bg-cyan-500/20 text-cyan-300' },
-    { id: 'POWER', labelTa: 'மின்சாரம்', labelEn: 'Power/Charge', icon: Zap, color: 'border-yellow-500 bg-yellow-500/20 text-yellow-300' },
-    { id: 'MISSING_PERSON', labelTa: 'காணாமல் போனவர்', labelEn: 'Missing Person', icon: UserX, color: 'border-orange-500 bg-orange-500/20 text-orange-300' },
-    { id: 'OTHER', labelTa: 'மற்றவை', labelEn: 'Other Emergency', icon: AlertTriangle, color: 'border-slate-500 bg-slate-500/20 text-slate-300' },
+  const categories: { id: HelpCategory; labelTa: string; labelEn: string; icon: any }[] = [
+    { id: 'MEDICAL', labelTa: 'மருத்துவம்', labelEn: 'Medical', icon: HeartPulse },
+    { id: 'AMBULANCE', labelTa: 'ஆம்புலன்ஸ்', labelEn: 'Ambulance', icon: Ambulance },
+    { id: 'RESCUE', labelTa: 'மீட்புப் படகு', labelEn: 'Rescue Boat', icon: LifeBuoy },
+    { id: 'FOOD', labelTa: 'உணவு', labelEn: 'Food Packs', icon: Utensils },
+    { id: 'WATER', labelTa: 'குடிநீர்', labelEn: 'Drinking Water', icon: Droplet },
+    { id: 'SHELTER', labelTa: 'தங்குமிடம்', labelEn: 'Shelter', icon: Home },
+    { id: 'ELDERLY', labelTa: 'முதியோர் உதவி', labelEn: 'Elderly Aid', icon: UserCheck },
+    { id: 'CHILD', labelTa: 'குழந்தைகள்', labelEn: 'Child Care', icon: Baby },
+    { id: 'DISABILITY', labelTa: 'மாற்றுத்திறனாளி', labelEn: 'Disability Aid', icon: Accessibility },
+    { id: 'TRANSPORT', labelTa: 'போக்குவரத்து', labelEn: 'Transport', icon: Car },
+    { id: 'POWER', labelTa: 'மின்சாரம்', labelEn: 'Power/Charge', icon: Zap },
+    { id: 'OTHER', labelTa: 'மற்றவை', labelEn: 'Other Help', icon: AlertTriangle },
   ];
 
-  // Photo upload handler
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       try {
@@ -82,12 +79,9 @@ export const RequestHelpModal: React.FC<RequestHelpModalProps> = ({ isOpen, onCl
     }
   };
 
-  // Voice recording handler
   const handleToggleVoiceRecord = async () => {
     if (isRecording) {
-      if (mediaRecorder) {
-        mediaRecorder.stop();
-      }
+      if (mediaRecorder) mediaRecorder.stop();
       setIsRecording(false);
     } else {
       try {
@@ -103,7 +97,7 @@ export const RequestHelpModal: React.FC<RequestHelpModalProps> = ({ isOpen, onCl
           const blob = new Blob(chunks, { type: 'audio/webm' });
           try {
             setLoading(true);
-            const res = await api.uploadFile(blob, 'voice-request.webm');
+            const res = await api.uploadFile(blob, 'help-voice.webm');
             setAudioUrl(res.url);
           } catch (e: any) {
             console.error('Audio upload error:', e);
@@ -117,30 +111,26 @@ export const RequestHelpModal: React.FC<RequestHelpModalProps> = ({ isOpen, onCl
         setMediaRecorder(recorder);
         setIsRecording(true);
       } catch (err) {
-        console.warn('Microphone permission denied or not available:', err);
-        setError('Could not access microphone. You can type or submit without audio.');
+        setError('Microphone access unavailable.');
       }
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
     setLoading(true);
+    setError(null);
 
     const payload = {
-      citizen_id: user?.id || 'user-citizen-1',
-      citizen_name: profile?.name || 'Citizen in Need',
-      citizen_phone: phone,
       category,
       severity,
-      description: description || `${category} emergency assistance requested in ${currentArea}`,
-      area: currentArea,
+      description: description.trim() || `${category} emergency requested in ${currentArea}`,
+      contact_phone: phone,
       latitude: coords.latitude,
       longitude: coords.longitude,
-      photo_url: photoUrl,
-      audio_url: audioUrl,
-      is_demo: 1
+      area: currentArea,
+      photo_url: photoUrl || undefined,
+      audio_url: audioUrl || undefined
     };
 
     try {
@@ -169,49 +159,49 @@ export const RequestHelpModal: React.FC<RequestHelpModalProps> = ({ isOpen, onCl
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-      <div className="w-full max-w-lg rounded-2xl bg-cyber-panel border border-cyber-red/50 p-5 sm:p-7 shadow-xl shadow-red-950/40 relative my-auto">
-        <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-cyber-red"></div>
-        <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-cyber-red"></div>
-
-        <div className="flex items-center justify-between pb-3 border-b border-cyber-border font-mono">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+      <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-700 p-5 sm:p-6 shadow-2xl relative my-auto">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded bg-cyber-red/20 text-cyber-red flex items-center justify-center border border-cyber-red/40">
-              <LifeBuoy className="w-4 h-4 animate-spin-slow" />
+            <div className="w-9 h-9 rounded-xl bg-red-600/30 text-red-400 flex items-center justify-center border border-red-500/40">
+              <LifeBuoy className="w-5 h-5 animate-pulse" />
             </div>
             <div>
-              <h3 className="text-base sm:text-lg font-mono font-bold text-white uppercase">
-                {language === 'ta' ? 'அவசர உதவி கோரல்' : 'CRISIS AID // SOS DISPATCH'}
+              <h3 className="text-base sm:text-lg font-bold text-white">
+                {language === 'ta' ? 'அவசர உதவி கோரல்' : 'Request Emergency Help (SOS)'}
               </h3>
-              <p className="text-xs font-mono text-slate-400 flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-cyber-red" />
-                SECTOR: {currentArea}
+              <p className="text-xs text-slate-300 flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-red-400" />
+                {currentArea}
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1 rounded text-slate-400 hover:text-white">
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {success ? (
-          <div className="py-12 flex flex-col items-center justify-center text-center font-mono">
-            <CheckCircle2 className="w-16 h-16 text-cyber-green animate-bounce mb-3 glow-text-green" />
-            <h4 className="text-lg font-bold text-white uppercase">
-              {language === 'ta' ? 'உதவி கோரிக்கை அனுப்பப்பட்டது!' : 'SOS DISPATCH BROADCASTED!'}
+          <div className="py-12 flex flex-col items-center justify-center text-center">
+            <CheckCircle2 className="w-16 h-16 text-emerald-400 mb-3" />
+            <h4 className="text-lg font-bold text-white">
+              {language === 'ta' ? 'உதவி கோரிக்கை அனுப்பப்பட்டது!' : 'Help Request Sent Successfully!'}
             </h4>
-            <p className="text-xs text-slate-400 font-sans mt-1 max-w-xs">
+            <p className="text-xs text-slate-300 mt-1 max-w-xs">
               {language === 'ta'
-                ? 'அருகிலுள்ள தன்னார்வலர்களுக்கு தகவல் அனுப்பப்பட்டுள்ளது. உடனடி உதவி ஒருங்கிணைக்கப்படுகிறது.'
-                : 'Frontline response teams and sector volunteers notified immediately.'}
+                ? 'அருகிலுள்ள மீட்புக் குழுவினருக்கு தகவல் தெரிவிக்கப்பட்டுள்ளது.'
+                : 'Nearby rescue volunteers and relief teams have been notified.'}
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="mt-4 space-y-4 font-mono">
-            {/* 1-Tap Category Grid */}
+          <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+            {/* Category selection */}
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-                1. {language === 'ta' ? 'தேவையான உதவி வகை (1-தட்டு)' : 'RESCUE NEED CLASSIFICATION'}
+              <label className="block text-xs font-bold text-slate-200 uppercase mb-2">
+                1. {language === 'ta' ? 'தேவையான உதவி வகை' : 'Select What You Need'}
               </label>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {categories.map((c) => {
@@ -222,14 +212,14 @@ export const RequestHelpModal: React.FC<RequestHelpModalProps> = ({ isOpen, onCl
                       type="button"
                       key={c.id}
                       onClick={() => setCategory(c.id)}
-                      className={`flex flex-col items-center justify-center p-2 rounded text-center transition-all active:scale-95 touch-target border ${
+                      className={`flex flex-col items-center justify-center p-2.5 rounded-xl text-center transition-all border ${
                         isSelected
-                          ? 'bg-cyber-red text-white border-cyber-red font-black shadow-neon-red scale-[1.03]'
-                          : 'bg-cyber-bg border-cyber-border text-slate-300 hover:border-cyber-red/50'
+                          ? 'bg-red-600 text-white border-red-500 font-bold shadow-md'
+                          : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700/80'
                       }`}
                     >
                       <Icon className="w-5 h-5 mb-1" />
-                      <span className="text-[10px] leading-tight font-mono">
+                      <span className="text-[11px] leading-tight">
                         {language === 'ta' ? c.labelTa : c.labelEn}
                       </span>
                     </button>
@@ -238,10 +228,10 @@ export const RequestHelpModal: React.FC<RequestHelpModalProps> = ({ isOpen, onCl
               </div>
             </div>
 
-            {/* Severity Pill Selector */}
+            {/* Priority Level */}
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-                2. {language === 'ta' ? 'அவசர நிலை' : 'THREAT / PRIORITY LEVEL'}
+              <label className="block text-xs font-bold text-slate-200 uppercase mb-2">
+                2. {language === 'ta' ? 'அவசர நிலை' : 'Urgency Level'}
               </label>
               <div className="grid grid-cols-4 gap-2">
                 {(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as SeverityLevel[]).map((lvl) => (
@@ -249,14 +239,14 @@ export const RequestHelpModal: React.FC<RequestHelpModalProps> = ({ isOpen, onCl
                     type="button"
                     key={lvl}
                     onClick={() => setSeverity(lvl)}
-                    className={`py-1.5 rounded text-xs font-bold border transition-all ${
+                    className={`py-2 rounded-xl text-xs font-bold transition-all border ${
                       severity === lvl
                         ? lvl === 'CRITICAL'
-                          ? 'bg-cyber-red border-cyber-red text-white shadow-neon-red font-black'
+                          ? 'bg-red-600 text-white border-red-500'
                           : lvl === 'HIGH'
-                          ? 'bg-cyber-amber border-cyber-amber text-black font-black'
-                          : 'bg-cyber-green border-cyber-green text-black font-black'
-                        : 'bg-cyber-bg border-cyber-border text-slate-400 hover:text-white'
+                          ? 'bg-amber-600 text-white border-amber-500'
+                          : 'bg-emerald-600 text-white border-emerald-500'
+                        : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
                     }`}
                   >
                     {lvl}
@@ -265,29 +255,43 @@ export const RequestHelpModal: React.FC<RequestHelpModalProps> = ({ isOpen, onCl
               </div>
             </div>
 
-            {/* Short Description */}
+            {/* Description & Address */}
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                3. {language === 'ta' ? 'குறுகிய விவரம்' : 'SITUATION REPORT (OPTIONAL)'}
+              <label className="block text-xs font-bold text-slate-200 uppercase mb-1.5">
+                3. {language === 'ta' ? 'விவரம் அல்லது முகவரி' : 'Description / Address'}
               </label>
               <textarea
+                rows={2}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                rows={2}
                 placeholder={
                   language === 'ta'
-                    ? 'எடுத்துக்காட்டு: முதியவருக்கு அவசர மருந்து தேவை, முதல் தளம்...'
-                    : 'e.g. Elderly patient needs oxygen, trapped on 1st floor, water rising...'
+                    ? 'எ.கா: 3 பேர் வீட்டில் சிக்கியுள்ளனர், 1 முதியவர் உள்ளனர், கதவு எண் 12...'
+                    : 'e.g. 3 people stranded on first floor, includes 1 senior citizen, Door No 12...'
                 }
-                className="w-full rounded bg-cyber-bg border border-cyber-border p-2.5 text-xs text-white placeholder-slate-500 font-sans focus:border-cyber-red outline-none"
+                className="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-xs text-white placeholder-slate-400 focus:border-red-500 outline-none"
               />
             </div>
 
-            {/* Quick Media Attach: Photo & Voice Note */}
+            {/* Phone Number */}
+            <div>
+              <label className="block text-xs font-bold text-slate-200 uppercase mb-1.5">
+                4. {language === 'ta' ? 'தொடர்பு எண்' : 'Contact Phone Number'}
+              </label>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required
+                className="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-xs text-white focus:border-red-500 outline-none"
+              />
+            </div>
+
+            {/* Optional Photo or Voice Record */}
             <div className="grid grid-cols-2 gap-2">
-              <label className="flex items-center justify-center gap-2 p-2.5 rounded bg-cyber-bg hover:bg-cyber-panel border border-cyber-border cursor-pointer text-xs font-bold text-slate-200 transition-colors">
-                <Camera className="w-4 h-4 text-cyber-cyan" />
-                <span>{photoUrl ? '✓ OPTICAL ADDED' : t.takePhoto}</span>
+              <label className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 cursor-pointer text-xs font-semibold text-slate-200 transition-colors">
+                <Camera className="w-4 h-4 text-sky-400" />
+                <span>{photoUrl ? '✓ Photo Added' : t.takePhoto}</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -300,47 +304,33 @@ export const RequestHelpModal: React.FC<RequestHelpModalProps> = ({ isOpen, onCl
               <button
                 type="button"
                 onClick={handleToggleVoiceRecord}
-                className={`flex items-center justify-center gap-2 p-2.5 rounded border text-xs font-bold transition-all ${
+                className={`flex items-center justify-center gap-2 p-2.5 rounded-xl border text-xs font-semibold transition-all ${
                   isRecording
-                    ? 'bg-cyber-red text-white border-cyber-red animate-pulse'
+                    ? 'bg-red-600 text-white border-red-500 animate-pulse'
                     : audioUrl
-                    ? 'bg-cyber-green/20 border-cyber-green text-cyber-green'
-                    : 'bg-cyber-bg hover:bg-cyber-panel border-cyber-border text-slate-200'
+                    ? 'bg-emerald-600/30 border-emerald-500 text-emerald-300'
+                    : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200'
                 }`}
               >
-                {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4 text-cyber-red" />}
-                <span>{isRecording ? t.stopRecording : audioUrl ? '✓ VOICE CAPTURED' : t.recordAudio}</span>
+                {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4 text-emerald-400" />}
+                <span>{isRecording ? t.stopRecording : audioUrl ? '✓ Voice Saved' : t.recordAudio}</span>
               </button>
             </div>
 
-            {/* Contact Phone */}
-            <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
-                {language === 'ta' ? 'தொடர்பு எண்' : 'OPERATIVE CALLBACK FREQ / PHONE'}
-              </label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                required
-                className="w-full rounded bg-cyber-bg border border-cyber-border px-3 py-2 text-xs text-white focus:border-cyber-red font-mono outline-none"
-              />
-            </div>
-
             {error && (
-              <p className="text-xs text-cyber-red bg-cyber-red/10 p-2.5 rounded border border-cyber-red/40 font-mono">
+              <p className="text-xs text-red-300 bg-red-950/60 p-2.5 rounded-xl border border-red-700/60">
                 {error}
               </p>
             )}
 
-            {/* Submit Button */}
+            {/* Submit button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded bg-cyber-red text-white hover:brightness-110 font-black text-xs uppercase tracking-wider shadow-neon-red flex items-center justify-center gap-2 active:scale-98 transition-all touch-target"
+              className="w-full py-3.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 active:scale-98 transition-all"
             >
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <LifeBuoy className="w-5 h-5" />}
-              <span>{language === 'ta' ? '🆘 அவசர உதவி கோரவும்' : 'TRANSMIT SOS DISPATCH'}</span>
+              <span>{language === 'ta' ? 'அவசர உதவி கோரிக்கையை அனுப்புக' : 'Send Emergency Help (SOS)'}</span>
             </button>
           </form>
         )}

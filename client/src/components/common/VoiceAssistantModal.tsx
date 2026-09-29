@@ -47,16 +47,11 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
       },
       (err: any) => {
         setIsListening(false);
-        console.warn('Speech recognition note:', err);
-        const isNetErr = err?.error === 'network';
+        console.warn('Speech recognition:', err);
         setErrorMessage(
-          isNetErr
-            ? (language === 'ta'
-                ? 'இணைய இணைப்பு குறைவு. கீழே உள்ள உடனடி பொத்தான்களைப் பயன்படுத்தி பதிவு செய்யலாம்.'
-                : 'Voice service requires internet. You can use the one-tap emergency buttons below.')
-            : (language === 'ta'
-                ? 'குரலைக் கேட்க முடியவில்லை. தயவுசெய்து மீண்டும் பேசவும் அல்லது கீழே உள்ள பொத்தான்களைப் பயன்படுத்தவும்.'
-                : 'Could not capture voice. Please try again or tap the emergency buttons.')
+          language === 'ta'
+            ? 'குரலைக் கேட்க முடியவில்லை. தயவுசெய்து மீண்டும் பேசவும் அல்லது திரையிலுள்ள பொத்தான்களைப் பயன்படுத்தவும்.'
+            : 'Could not capture voice clearly. Please try again or tap the buttons.'
         );
       }
     );
@@ -65,8 +60,8 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
   const handleIntent = (intent: VoiceIntent, capturedText: string) => {
     if (intent === 'REQUEST_HELP') {
       const responseVoice = language === 'ta'
-        ? 'மருத்துவ உதவி கேட்கவா? உறுதிப்படுத்தவும்.'
-        : 'Do you want to request emergency help? Please confirm.';
+        ? 'மருத்துவ அல்லது மீட்பு உதவி கேட்கவா?'
+        : 'Do you want to request emergency help?';
       voiceService.speak(responseVoice, language);
       setConfirmingIntent('REQUEST_HELP');
     } else if (intent === 'REPORT_FLOOD') {
@@ -84,20 +79,20 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
     } else if (intent === 'FIND_SHELTER') {
       const responseVoice = language === 'ta'
         ? 'பாதுகாப்பான நிவாரண முகாம்களைக் காட்டுகிறேன்.'
-        : 'Showing nearby emergency shelters.';
+        : 'Showing nearby shelters.';
       voiceService.speak(responseVoice, language);
       setTimeout(() => {
         onClose();
-        navigate('/map');
+        navigate('/shelters');
       }, 1000);
     } else if (intent === 'FIND_RESOURCE') {
       const responseVoice = language === 'ta'
         ? 'நிவாரணப் பொருட்கள் பட்டியலைக் காட்டுகிறேன்.'
-        : 'Opening community resources.';
+        : 'Opening resources.';
       voiceService.speak(responseVoice, language);
       setTimeout(() => {
         onClose();
-        navigate('/help');
+        navigate('/resources');
       }, 1000);
     } else {
       const responseVoice = language === 'ta'
@@ -144,104 +139,95 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="w-full max-w-md rounded-2xl bg-cyber-panel border border-cyber-cyan/40 p-6 shadow-neon-cyan flex flex-col items-center text-center relative overflow-hidden">
-        {/* Decorative corner brackets */}
-        <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-cyber-cyan"></div>
-        <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-cyber-cyan"></div>
-        <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-cyber-cyan"></div>
-        <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-cyber-cyan"></div>
-
-        {/* Close Button & HUD Header */}
-        <div className="w-full flex justify-between items-center mb-2 pb-2 border-b border-cyber-border">
-          <span className="text-[11px] font-mono font-bold text-cyber-cyan uppercase tracking-widest flex items-center gap-1.5 glow-text-cyan">
-            <Volume2 className="w-4 h-4 animate-pulse text-cyber-cyan" />
-            [AI COMM LINK // {language === 'ta' ? 'குரல் உதவியாளர்' : 'VOICE HUD'}]
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="w-full max-w-md rounded-2xl bg-slate-900 border border-slate-700 p-6 shadow-2xl flex flex-col items-center text-center relative">
+        {/* Header */}
+        <div className="w-full flex justify-between items-center mb-2 pb-2 border-b border-slate-800">
+          <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+            <Volume2 className="w-4 h-4 text-emerald-400" />
+            {language === 'ta' ? 'குரல் வழி உதவி' : 'Voice Assistant'}
           </span>
           <button
             onClick={() => {
               voiceService.stopListening();
               onClose();
             }}
-            className="p-1 rounded text-slate-400 hover:text-cyber-cyan hover:bg-cyber-cyan/10 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Instructions */}
-        <h3 className="text-base sm:text-lg font-mono font-extrabold text-white mt-2 tracking-wide">
-          {language === 'ta' ? 'பேசி உடனடி உதவி பெறவும்' : 'COMM LINK: VOICE INPUT'}
+        <h3 className="text-base font-bold text-white mt-2">
+          {language === 'ta' ? 'பேசி உதவி பெறவும்' : 'Speak to Access Assistance'}
         </h3>
-        <p className="text-xs text-slate-400 font-mono mt-1 max-w-xs">
+        <p className="text-xs text-slate-300 mt-1 max-w-xs leading-relaxed">
           {language === 'ta'
-            ? 'உதாரணம்: "எனக்கு உதவி வேண்டும்", "வெள்ளம் இருக்கு", "நான் பாதுகாப்பாக இருக்கிறேன்"'
-            : 'Commands: "Emergency Help", "Report Flood Level", "Mark Safe", "Find Shelter"'}
+            ? 'உதாரணம்: "உதவி வேண்டும்", "வெள்ளம்", "நான் பாதுகாப்பாக உள்ளேன்"'
+            : 'Try saying: "Help", "Report Flood", "I am safe", or "Find Shelter"'}
         </p>
 
-        {/* Large Central Microphone Button */}
-        <div className="my-7 relative flex items-center justify-center">
+        {/* Central Mic Button */}
+        <div className="my-6 relative flex items-center justify-center">
           {isListening && (
-            <div className="absolute w-36 h-36 rounded-full border border-cyber-green/50 bg-cyber-green/10 animate-ping pointer-events-none" />
+            <div className="absolute w-32 h-32 rounded-full border border-emerald-400/50 bg-emerald-500/10 animate-ping pointer-events-none" />
           )}
           <button
             onClick={isListening ? () => voiceService.stopListening() : handleStartListening}
-            className={`w-28 h-28 rounded-full flex flex-col items-center justify-center transition-all duration-300 active:scale-95 touch-target ${
+            className={`w-24 h-24 rounded-full flex flex-col items-center justify-center transition-all duration-200 active:scale-95 shadow-lg ${
               isListening
-                ? 'bg-cyber-green text-black shadow-neon-green ring-8 ring-cyber-green/20'
-                : 'bg-cyber-bg border-2 border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan/10 shadow-neon-cyan'
+                ? 'bg-emerald-600 text-white ring-4 ring-emerald-400/30'
+                : 'bg-slate-800 hover:bg-slate-700 border-2 border-emerald-500 text-emerald-400'
             }`}
           >
             {isListening ? (
-              <MicOff className="w-10 h-10 animate-pulse text-black" />
+              <MicOff className="w-8 h-8 animate-pulse text-white" />
             ) : (
-              <Mic className="w-10 h-10 text-cyber-cyan" />
+              <Mic className="w-8 h-8 text-emerald-400" />
             )}
-            <span className="text-[10px] font-mono font-bold mt-1 tracking-wider uppercase">
-              {isListening ? (language === 'ta' ? 'கேட்கிறது...' : 'LISTENING...') : (language === 'ta' ? 'பேசுங்கள்' : 'TAP MIC')}
+            <span className="text-[11px] font-bold mt-1">
+              {isListening
+                ? (language === 'ta' ? 'கேட்கிறது...' : 'Listening...')
+                : (language === 'ta' ? 'தட்டவும்' : 'Tap to Speak')}
             </span>
           </button>
         </div>
 
-        {/* Live Transcript Display */}
+        {/* Transcript */}
         {transcript && (
-          <div className="w-full p-3 rounded-lg bg-cyber-bg border border-cyber-green/40 text-left mb-4 shadow-[0_0_10px_rgba(0,255,157,0.15)]">
-            <span className="text-[10px] font-mono font-bold text-cyber-green uppercase tracking-wider block">
-              &gt; {language === 'ta' ? 'நீங்கள் கூறியது:' : 'TRANSCRIBED:'}
+          <div className="w-full p-3 rounded-xl bg-slate-800 border border-slate-700 text-left mb-3">
+            <span className="text-[10px] font-bold text-emerald-400 uppercase block">
+              {language === 'ta' ? 'நீங்கள் கூறியது:' : 'Heard:'}
             </span>
-            <p className="text-sm font-mono text-white mt-1">
+            <p className="text-xs text-white mt-0.5">
               "{transcript}"
             </p>
           </div>
         )}
 
-        {/* Confirmation Flow for Voice Actions */}
+        {/* Confirmation */}
         {confirmingIntent && (
-          <div className="w-full p-4 rounded-xl bg-cyber-bg/90 border border-cyber-red/60 text-center mb-4 shadow-[0_0_15px_rgba(255,42,85,0.25)]">
-            <div className="flex items-center justify-center gap-1.5 text-cyber-red font-mono font-bold text-xs uppercase mb-1">
-              <AlertCircle className="w-4 h-4" />
-              {t.confirmHelpTitle}
-            </div>
-            <p className="text-sm font-mono font-bold text-white mb-3">
-              {confirmingIntent === 'REQUEST_HELP' && (language === 'ta' ? 'அவசர உதவி கோரவா?' : 'Dispatch Emergency Help Request?')}
-              {confirmingIntent === 'REPORT_FLOOD' && (language === 'ta' ? 'வெள்ளப் பதிவு தொடங்கவா?' : 'Open Flood Telemetry Form?')}
-              {confirmingIntent === 'SAFETY_CHECK' && (language === 'ta' ? 'பாதுகாப்பாக உள்ளீர்கள் என்று பதிவு செய்யவா?' : 'Transmit SAFE Status to HQ?')}
+          <div className="w-full p-4 rounded-xl bg-slate-800 border border-slate-700 text-center mb-3">
+            <p className="text-xs font-bold text-white mb-3">
+              {confirmingIntent === 'REQUEST_HELP' && (language === 'ta' ? 'அவசர உதவி கோரவா?' : 'Open Emergency Help (SOS)?')}
+              {confirmingIntent === 'REPORT_FLOOD' && (language === 'ta' ? 'வெள்ளப் பதிவு தொடங்கவா?' : 'Open Flood Report Form?')}
+              {confirmingIntent === 'SAFETY_CHECK' && (language === 'ta' ? 'பாதுகாப்பாக உள்ளீர்கள் என்று பதிவு செய்யவா?' : 'Confirm You Are Safe?')}
             </p>
 
-            <div className="grid grid-cols-2 gap-2 font-mono">
+            <div className="grid grid-cols-2 gap-2">
               <button
                 disabled={isProcessing}
                 onClick={handleConfirmAction}
-                className="py-2.5 rounded bg-cyber-green text-black font-extrabold text-xs flex items-center justify-center gap-1 shadow-neon-green hover:brightness-110"
+                className="py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-1 hover:bg-emerald-500"
               >
-                <Check className="w-4 h-4 stroke-[3px]" />
+                <Check className="w-4 h-4" />
                 {t.yesConfirm}
               </button>
               <button
                 onClick={() => setConfirmingIntent(null)}
-                className="py-2.5 rounded bg-cyber-panel border border-slate-700 font-bold text-xs text-slate-300 hover:text-white flex items-center justify-center gap-1"
+                className="py-2 rounded-xl bg-slate-700 text-slate-200 font-bold text-xs hover:bg-slate-600"
               >
-                <X className="w-4 h-4 stroke-[3px]" />
                 {t.noCancel}
               </button>
             </div>
@@ -250,15 +236,14 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
 
         {/* Error message */}
         {errorMessage && (
-          <p className="text-xs text-cyber-amber mb-4 bg-cyber-amber/10 p-2.5 rounded border border-cyber-amber/40 font-mono">
+          <p className="text-xs text-amber-300 mb-3 bg-amber-950/60 p-2.5 rounded-xl border border-amber-600/40">
             {errorMessage}
           </p>
         )}
 
         {/* Language Indicator */}
-        <div className="text-[11px] text-slate-400 font-mono flex items-center gap-1.5">
-          <span>ACTIVE COMM FREQ:</span>
-          <span className="font-bold text-cyber-green">{language === 'ta' ? 'TAMIL (தமிழ்)' : 'EN-US'}</span>
+        <div className="text-xs text-slate-400">
+          <span>{language === 'ta' ? 'மொழி: தமிழ்' : 'Language: English'}</span>
         </div>
       </div>
     </div>

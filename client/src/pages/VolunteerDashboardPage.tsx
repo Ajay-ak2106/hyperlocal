@@ -5,7 +5,6 @@ import { api } from '../services/api.js';
 import { AssistanceRequest, Volunteer } from '../types/index.js';
 import {
   LifeBuoy,
-  Shield,
   CheckCircle2,
   Clock,
   PlayCircle,
@@ -18,7 +17,7 @@ import {
 } from 'lucide-react';
 
 export const VolunteerDashboardPage: React.FC = () => {
-  const { user, profile, volunteer, currentArea, switchDemoRole } = useAuth();
+  const { user, profile, volunteer, currentArea, switchDemoRole, language } = useAuth();
   const { lastRealtimeEvent } = useRealtime();
 
   const [requests, setRequests] = useState<AssistanceRequest[]>([]);
@@ -26,12 +25,11 @@ export const VolunteerDashboardPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
-  // Skill checklist state for quick self-registration
   const allSkills = [
-    'FIRST AID', 'CPR', 'SWIMMING', 'FLOOD RESCUE', 'BOAT OPERATION',
-    'DRIVING', 'FIRE SAFETY', 'FOOD DISTRIBUTION', 'LOGISTICS', 'COMMUNICATION', 'DRONE OPERATION'
+    'First Aid', 'CPR', 'Swimming', 'Flood Rescue', 'Boat Operation',
+    'Driving', 'Food Distribution', 'Logistics'
   ];
-  const [mySkills, setMySkills] = useState<string[]>(volunteer?.skills || ['FLOOD RESCUE', 'SWIMMING', 'BOAT OPERATION', 'FIRST AID']);
+  const [mySkills, setMySkills] = useState<string[]>(volunteer?.skills || ['Flood Rescue', 'Swimming', 'Boat Operation', 'First Aid']);
 
   const loadData = async () => {
     try {
@@ -53,20 +51,18 @@ export const VolunteerDashboardPage: React.FC = () => {
     loadData();
   }, [lastRealtimeEvent]);
 
-  // Toggle skills
   const toggleSkill = (skill: string) => {
     setMySkills((prev) =>
       prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]
     );
   };
 
-  // Volunteer Accepts Request (Directly triggers realtime event for citizen!)
   const handleAcceptRequest = async (requestId: string) => {
     setActionLoadingId(requestId);
     try {
       await api.acceptAssistanceRequest(requestId, {
         volunteer_id: volunteer?.id || user?.id || 'user-vol-1',
-        volunteer_name: volunteer?.full_name || profile?.name || 'Senthil Kumar (Volunteer)',
+        volunteer_name: volunteer?.full_name || profile?.name || 'Volunteer',
         volunteer_phone: volunteer?.phone || profile?.mobile_number || '+91 98840 99887'
       });
       await loadData();
@@ -77,7 +73,6 @@ export const VolunteerDashboardPage: React.FC = () => {
     }
   };
 
-  // Update Status to IN_PROGRESS or COMPLETED
   const handleUpdateStatus = async (requestId: string, newStatus: string) => {
     setActionLoadingId(requestId);
     try {
@@ -98,47 +93,43 @@ export const VolunteerDashboardPage: React.FC = () => {
   return (
     <div className="pb-24 pt-3 px-3 sm:px-6 max-w-5xl mx-auto space-y-4">
       {/* Volunteer Header */}
-      <div className="bg-cyber-panel border border-cyber-cyan/40 p-5 rounded-2xl shadow-neon-cyan flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative">
-        <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-cyber-cyan"></div>
-        <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-cyber-cyan"></div>
-
+      <div className="bg-slate-900 border border-slate-700 p-5 rounded-2xl shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/40 glow-text-cyan">
-              [OPERATIVE DISPATCH // VOLUNTEER CORPS HUD]
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-600/40">
+              ● Active Volunteer
             </span>
-            <span className="text-xs font-mono font-bold text-cyber-green glow-text-green">● STATUS: COMBAT READY</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-mono font-black text-white">
-            OPERATIVE {profile?.name?.toUpperCase() || 'SENTHIL KUMAR'} (DISPATCH HUD)
+          <h1 className="text-xl sm:text-2xl font-bold text-white">
+            {profile?.name || 'Volunteer'} (Response Dashboard)
           </h1>
-          <p className="text-xs font-mono text-slate-400 mt-1">
-            DEPLOYED SECTOR: <strong className="text-cyber-cyan">{currentArea}</strong> • GEAR: Inflatable Rescue Boat & 4x4 High-Clearance Rig
+          <p className="text-xs text-slate-300 mt-1">
+            Active Area: <strong className="text-emerald-400">{currentArea}</strong> • Assigned Boat & First Aid Kit
           </p>
         </div>
 
         <button
           onClick={() => switchDemoRole('CITIZEN')}
-          className="py-2.5 px-4 rounded bg-cyber-bg hover:bg-cyber-panel text-slate-300 text-xs font-mono font-bold border border-cyber-border hover:border-cyber-green/50 transition-colors"
+          className="py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition-colors"
         >
-          SWITCH TO CITIZEN HUD
+          Switch to Citizen View
         </button>
       </div>
 
-      {/* High-Risk Rescue Safety Advisory */}
-      <div className="p-4 rounded-xl bg-cyber-bg border border-cyber-amber/50 flex items-start gap-3 shadow-[0_0_15px_rgba(255,183,3,0.15)] font-mono">
-        <AlertTriangle className="w-5 h-5 text-cyber-amber flex-shrink-0 mt-0.5" />
-        <div className="text-xs text-cyber-amber/90 leading-relaxed">
-          <strong className="text-white block mb-0.5">&gt; PROTOCOL DIRECTIVE: VOLUNTEER SAFETY</strong>
-          Do not navigate rapid torrents or water depths exceeding 3.5ft without personal flotation devices and paired reconnaissance backup.
+      {/* Volunteer Safety Advisory */}
+      <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-500/40 flex items-start gap-3">
+        <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+        <div className="text-xs text-amber-200 leading-relaxed">
+          <strong className="text-white block mb-0.5">Safety Advisory:</strong>
+          Always wear life jackets and do not attempt solo rescue in water exceeding 3.5 feet without companion support.
         </div>
       </div>
 
-      {/* Skills & Certifications Selector */}
-      <div className="p-4 rounded-xl bg-cyber-panel border border-cyber-border space-y-2 font-mono">
-        <h3 className="text-xs font-bold text-cyber-cyan uppercase tracking-wider flex items-center gap-1.5 glow-text-cyan">
-          <Award className="w-4 h-4 text-cyber-cyan" />
-          TACTICAL CERTIFICATIONS & QUALIFICATIONS
+      {/* Skills Selector */}
+      <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700 space-y-2">
+        <h3 className="text-xs font-bold text-white flex items-center gap-1.5">
+          <Award className="w-4 h-4 text-emerald-400" />
+          <span>My Verified Skills</span>
         </h3>
         <div className="flex flex-wrap gap-1.5 pt-1">
           {allSkills.map((sk) => {
@@ -147,13 +138,13 @@ export const VolunteerDashboardPage: React.FC = () => {
               <button
                 key={sk}
                 onClick={() => toggleSkill(sk)}
-                className={`px-3 py-1.5 rounded text-xs font-bold transition-all flex items-center gap-1 active:scale-95 border ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1 active:scale-95 border ${
                   has
-                    ? 'bg-cyber-cyan text-black border-cyber-cyan shadow-[0_0_10px_rgba(0,229,255,0.4)]'
-                    : 'bg-cyber-bg text-slate-400 border-cyber-border hover:border-cyber-cyan/40 hover:text-white'
+                    ? 'bg-emerald-600 text-white border-emerald-500'
+                    : 'bg-slate-900 text-slate-400 border-slate-700 hover:text-white'
                 }`}
               >
-                {has && <Check className="w-3.5 h-3.5 stroke-[3px]" />}
+                {has && <Check className="w-3.5 h-3.5" />}
                 <span>{sk}</span>
               </button>
             );
@@ -161,36 +152,36 @@ export const VolunteerDashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* My Active Assignments */}
+      {/* My Active Tasks */}
       {myAssignedRequests.length > 0 && (
-        <div className="space-y-3 font-mono">
-          <h2 className="text-sm font-black text-cyber-green flex items-center gap-2 glow-text-green">
+        <div className="space-y-3">
+          <h2 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4" />
-            MY ACTIVE SECTOR SORTIES ({myAssignedRequests.length})
+            <span>My Active Assignments ({myAssignedRequests.length})</span>
           </h2>
 
           <div className="space-y-3">
             {myAssignedRequests.map((req) => (
               <div
                 key={req.id}
-                className="p-5 rounded-xl bg-cyber-panel border border-cyber-cyan/50 shadow-neon-cyan space-y-3 relative"
+                className="p-5 rounded-2xl bg-slate-800/80 border border-slate-700 space-y-3"
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase text-cyber-cyan">
-                    🚨 {req.category} • SECTOR {req.area}
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-white">
+                    🚨 {req.category} • {req.area}
                   </span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/40">
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sky-950 text-sky-300 border border-sky-500/40">
                     {req.status}
                   </span>
                 </div>
 
-                <p className="text-xs sm:text-sm text-slate-200 font-sans leading-relaxed">{req.description}</p>
+                <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">{req.description}</p>
 
-                <div className="pt-2 border-t border-cyber-border flex items-center justify-between flex-wrap gap-2 text-xs">
+                <div className="pt-2 border-t border-slate-700 flex items-center justify-between flex-wrap gap-2 text-xs">
                   <div>
-                    CALLSIGN: <strong className="text-white">{req.citizen_name}</strong>
+                    Citizen: <strong className="text-white">{req.citizen_name}</strong>
                     {req.citizen_phone && (
-                      <a href={`tel:${req.citizen_phone}`} className="ml-2 text-cyber-green font-bold hover:underline">
+                      <a href={`tel:${req.citizen_phone}`} className="ml-2 text-sky-400 hover:underline">
                         📞 {req.citizen_phone}
                       </a>
                     )}
@@ -201,10 +192,10 @@ export const VolunteerDashboardPage: React.FC = () => {
                       <button
                         disabled={actionLoadingId === req.id}
                         onClick={() => handleUpdateStatus(req.id, 'IN_PROGRESS')}
-                        className="py-2 px-3 rounded bg-blue-600/30 border border-blue-500 text-blue-300 hover:bg-blue-600 hover:text-white font-bold text-xs flex items-center gap-1 active:scale-95 transition-colors"
+                        className="py-1.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center gap-1 active:scale-95 transition-colors"
                       >
                         <PlayCircle className="w-3.5 h-3.5" />
-                        <span>MARK IN TRANSIT</span>
+                        <span>En Route</span>
                       </button>
                     )}
 
@@ -212,10 +203,10 @@ export const VolunteerDashboardPage: React.FC = () => {
                       <button
                         disabled={actionLoadingId === req.id}
                         onClick={() => handleUpdateStatus(req.id, 'COMPLETED')}
-                        className="py-2 px-3 rounded bg-cyber-green text-black font-bold text-xs flex items-center gap-1 shadow-neon-green hover:brightness-110 active:scale-95 transition-all"
+                        className="py-1.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1 active:scale-95 transition-all"
                       >
-                        <CheckCircle2 className="w-3.5 h-3.5 stroke-[3px]" />
-                        <span>CONFIRM RESCUE DONE</span>
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Mark Resolved</span>
                       </button>
                     )}
                   </div>
@@ -227,42 +218,46 @@ export const VolunteerDashboardPage: React.FC = () => {
       )}
 
       {/* Available Pending Requests Queue */}
-      <div className="space-y-3 font-mono">
-        <h2 className="text-sm font-black text-white flex items-center gap-2">
-          <Clock className="w-4 h-4 text-cyber-amber" />
-          PENDING EMERGENCY QUEUE AWAITING VOLUNTEER SORTIE ({pendingRequests.length})
+      <div className="space-y-3">
+        <h2 className="text-sm font-bold text-white flex items-center gap-2">
+          <Clock className="w-4 h-4 text-amber-400" />
+          <span>Pending Citizen Requests Awaiting Volunteer ({pendingRequests.length})</span>
         </h2>
 
         {pendingRequests.length === 0 ? (
-          <div className="p-10 rounded-xl bg-cyber-panel border border-cyber-border text-center text-xs text-slate-400">
-            ALL SECTOR ALARMS CURRENTLY RESOLVED. MONITORING RADIO TELEMETRY...
+          <div className="p-8 rounded-2xl bg-slate-800/80 border border-slate-700 text-center text-xs text-slate-400">
+            All requests in {currentArea} are currently assigned.
           </div>
         ) : (
           pendingRequests.map((req) => (
             <div
               key={req.id}
-              className="p-5 rounded-xl bg-cyber-panel border border-cyber-border hover:border-cyber-green/50 shadow-md hover:shadow-neon-green transition-all space-y-3 relative group"
+              className="p-5 rounded-2xl bg-slate-800/80 border border-slate-700 space-y-3"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-white">🆘 {req.category}</span>
-                  <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-cyber-red/20 text-cyber-red border border-cyber-red/40">
+                  <span className="font-bold text-white">🆘 {req.category}</span>
+                  <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${
+                    req.severity === 'CRITICAL'
+                      ? 'bg-red-900/60 text-red-200'
+                      : 'bg-amber-900/60 text-amber-200'
+                  }`}>
                     {req.severity}
                   </span>
-                  <span className="text-xs text-slate-400">📍 SECTOR: {req.area}</span>
+                  <span className="text-slate-400">📍 {req.area}</span>
                 </div>
-                <span className="text-[10px] text-slate-500 font-mono">
+                <span className="text-slate-400 text-[11px]">
                   {new Date(req.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
 
-              <p className="text-xs sm:text-sm text-slate-200 font-sans leading-relaxed">{req.description}</p>
+              <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">{req.description}</p>
 
-              <div className="pt-2 border-t border-cyber-border flex items-center justify-between flex-wrap gap-2 text-xs">
+              <div className="pt-2 border-t border-slate-700 flex items-center justify-between flex-wrap gap-2 text-xs">
                 <div>
-                  CALLSIGN: <strong className="text-white">{req.citizen_name}</strong>
+                  Citizen: <strong className="text-white">{req.citizen_name}</strong>
                   {req.citizen_phone && (
-                    <a href={`tel:${req.citizen_phone}`} className="ml-2 text-cyber-green hover:underline">
+                    <a href={`tel:${req.citizen_phone}`} className="ml-2 text-sky-400 hover:underline">
                       📞 {req.citizen_phone}
                     </a>
                   )}
@@ -271,10 +266,10 @@ export const VolunteerDashboardPage: React.FC = () => {
                 <button
                   disabled={actionLoadingId === req.id}
                   onClick={() => handleAcceptRequest(req.id)}
-                  className="py-2.5 px-4 rounded bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan hover:text-black font-extrabold text-xs flex items-center gap-1.5 shadow-[0_0_12px_rgba(0,229,255,0.25)] active:scale-95 transition-all touch-target"
+                  className="py-2 px-4 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs flex items-center gap-1.5 active:scale-95 transition-all"
                 >
                   <UserCheck className="w-4 h-4" />
-                  <span>ACCEPT THIS SORTIE</span>
+                  <span>I Will Help (Accept)</span>
                 </button>
               </div>
             </div>

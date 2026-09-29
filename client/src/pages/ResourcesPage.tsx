@@ -13,14 +13,12 @@ import {
   HeartPulse,
   LifeBuoy,
   Zap,
-  Truck,
-  CheckCircle2,
   X,
   Loader2
 } from 'lucide-react';
 
 export const ResourcesPage: React.FC = () => {
-  const { user, profile, currentArea, coords, language } = useAuth();
+  const { profile, currentArea, coords, language } = useAuth();
   const { lastRealtimeEvent } = useRealtime();
 
   const [resources, setResources] = useState<Resource[]>([]);
@@ -29,7 +27,7 @@ export const ResourcesPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   // Form states
-  const [providerName, setProviderName] = useState(profile?.name || 'Local Welfare Trust');
+  const [providerName, setProviderName] = useState(profile?.name || 'Community Volunteer');
   const [providerPhone, setProviderPhone] = useState(profile?.mobile_number || '+91 98400 11223');
   const [category, setCategory] = useState('FOOD');
   const [itemName, setItemName] = useState('');
@@ -100,43 +98,38 @@ export const ResourcesPage: React.FC = () => {
 
   return (
     <div className="pb-24 pt-3 px-3 sm:px-6 max-w-5xl mx-auto space-y-4">
-      <div className="bg-cyber-panel border border-cyber-cyan/40 p-5 rounded-2xl shadow-neon-cyan flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative">
-        <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-cyber-cyan"></div>
-        <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-cyber-cyan"></div>
-
+      <div className="bg-slate-900 border border-slate-700 p-5 rounded-2xl shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/40 glow-text-cyan">
-              [LOGISTICS // CRISIS SUPPLY DEPOT]
-            </span>
-          </div>
-          <h1 className="text-xl sm:text-2xl font-mono font-black text-white">
-            {language === 'ta' ? 'அத்தியாவசியப் பொருட்கள் & உணவு' : 'EMERGENCY SUPPLIES & RATIONS DEPOT'}
+          <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+            <span>📦</span>
+            {language === 'ta' ? 'அத்தியாவசியப் பொருட்கள் & உணவு' : 'Emergency Supplies & Food'}
           </h1>
-          <p className="text-xs font-mono text-slate-400 mt-1 max-w-xl">
-            Community-verified ration drops, drinking water tankers, motorboats, and solar charging grid nodes.
+          <p className="text-xs text-slate-300 mt-1 max-w-xl">
+            {language === 'ta'
+              ? 'உணவு பொட்டலங்கள், குடிநீர், படகுகள் மற்றும் அத்தியாவசிய பொருட்கள்.'
+              : 'Community-contributed food packets, potable water, rescue boats, and supplies.'}
           </p>
         </div>
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="py-3 px-5 rounded bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan hover:text-black font-mono font-bold text-xs shadow-[0_0_15px_rgba(0,229,255,0.25)] flex items-center justify-center gap-2 active:scale-95 transition-all touch-target"
+          className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
         >
-          <Plus className="w-4 h-4 stroke-[3px]" />
-          <span>+ OFFER SUPPLIES</span>
+          <Plus className="w-4 h-4" />
+          <span>{language === 'ta' ? '+ பொருட்கள் வழங்க' : '+ Offer Supplies'}</span>
         </button>
       </div>
 
       {/* Category Filter Pills */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 font-mono">
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
         {categories.map((c) => (
           <button
             key={c}
             onClick={() => setFilter(c)}
-            className={`px-3 py-1.5 rounded text-xs font-bold transition-all whitespace-nowrap border ${
+            className={`px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap border ${
               filter === c
-                ? 'bg-cyber-cyan text-black border-cyber-cyan shadow-[0_0_10px_rgba(0,229,255,0.5)]'
-                : 'bg-cyber-panel text-slate-400 border-cyber-border hover:border-cyber-cyan/50 hover:text-white'
+                ? 'bg-sky-600 text-white border-sky-500'
+                : 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700'
             }`}
           >
             {c.replace(/_/g, ' ')}
@@ -149,45 +142,45 @@ export const ResourcesPage: React.FC = () => {
         {filtered.map((res) => (
           <div
             key={res.id}
-            className="p-5 rounded-xl bg-cyber-panel border border-cyber-border hover:border-cyber-cyan/50 shadow-lg hover:shadow-neon-cyan transition-all flex flex-col justify-between space-y-3 relative group"
+            className="p-5 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-slate-600 transition-all shadow-sm flex flex-col justify-between space-y-3"
           >
             <div>
               <div className="flex items-start justify-between gap-2 mb-1">
-                <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/40">
+                <span className="text-[11px] font-bold uppercase px-2 py-0.5 rounded-md bg-slate-900 text-sky-300 border border-slate-700">
                   {res.category.replace(/_/g, ' ')}
                 </span>
-                <span className="text-xs font-mono font-bold text-slate-400">📍 SECTOR: {res.area}</span>
+                <span className="text-xs text-slate-400">📍 {res.area}</span>
               </div>
 
-              <h3 className="text-base font-mono font-bold text-white mt-1">{res.name}</h3>
+              <h3 className="text-base font-bold text-white mt-1">{res.name}</h3>
 
-              <div className="mt-2.5 p-3 rounded-lg bg-cyber-bg border border-cyber-border flex items-center justify-between">
-                <span className="text-xs font-mono text-slate-400">STOCK IN INVENTORY:</span>
-                <span className="text-base font-mono font-black text-cyber-green glow-text-green">
-                  {res.quantity} {res.unit.toUpperCase()}
+              <div className="mt-2.5 p-3 rounded-xl bg-slate-900 border border-slate-700/80 flex items-center justify-between">
+                <span className="text-xs text-slate-400">Available Quantity:</span>
+                <span className="text-base font-bold text-emerald-400">
+                  {res.quantity} {res.unit}
                 </span>
               </div>
 
-              <p className="text-xs font-mono text-slate-400 mt-2">
-                PROVIDER: <strong className="text-slate-200">{res.provider_name}</strong> • MODE: {res.delivery_mode}
+              <p className="text-xs text-slate-300 mt-2">
+                Provided by: <strong className="text-white">{res.provider_name}</strong>
               </p>
             </div>
 
-            <div className="pt-2 border-t border-cyber-border flex items-center justify-between gap-2 font-mono">
+            <div className="pt-2 border-t border-slate-700 flex items-center justify-between gap-2">
               <a
                 href={`tel:${res.provider_phone}`}
-                className="py-2 px-3 rounded bg-cyber-cyan/15 border border-cyber-cyan/40 hover:bg-cyber-cyan hover:text-black text-cyber-cyan font-bold text-xs flex items-center gap-1.5 touch-target transition-colors"
+                className="py-2 px-3 rounded-xl bg-slate-900 border border-slate-700 hover:bg-slate-700 text-sky-400 font-semibold text-xs flex items-center gap-1.5 transition-colors"
               >
                 <PhoneCall className="w-3.5 h-3.5" />
-                <span>CALL DISPATCHER</span>
+                <span>Call Provider</span>
               </a>
 
               <button
                 onClick={() => handleDistribute(res.id, res.quantity)}
                 disabled={res.quantity <= 0}
-                className="py-2 px-3 rounded bg-cyber-bg border border-cyber-border hover:border-cyber-green text-slate-300 hover:text-cyber-green text-xs font-bold active:scale-95 disabled:opacity-30 transition-colors"
+                className="py-2 px-3 rounded-xl bg-slate-900 border border-slate-700 hover:bg-slate-700 text-slate-200 text-xs font-semibold active:scale-95 disabled:opacity-30 transition-colors"
               >
-                DISPATCH 10 UNITS
+                Distribute 10
               </button>
             </div>
           </div>
@@ -196,88 +189,86 @@ export const ResourcesPage: React.FC = () => {
 
       {/* Add Resource Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-2xl bg-cyber-panel border border-cyber-cyan/50 p-6 shadow-neon-cyan relative">
-            <div className="flex justify-between items-center pb-3 border-b border-cyber-border">
-              <h3 className="text-sm font-mono font-bold text-white flex items-center gap-2">
-                <Package className="w-5 h-5 text-cyber-cyan" />
-                OFFER CRISIS SUPPLIES TO COMMUNITY
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-md rounded-2xl bg-slate-900 border border-slate-700 p-6 shadow-2xl relative">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-800 mb-4">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <Package className="w-4 h-4 text-emerald-400" />
+                {language === 'ta' ? 'புதிய பொருட்கள் வழங்கல்' : 'Offer Relief Supplies'}
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="p-1 rounded text-slate-400 hover:text-white">
-                <X className="w-5 h-5" />
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateResource} className="mt-4 space-y-3 font-mono">
+            <form onSubmit={handleCreateResource} className="space-y-3 text-xs">
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">SUPPLY CATEGORY</label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full rounded bg-cyber-bg border border-cyber-border p-2.5 text-xs text-white focus:border-cyber-cyan outline-none"
-                >
-                  <option value="FOOD">FOOD (Meals, Biscuits)</option>
-                  <option value="WATER">WATER (Cans, Bottles)</option>
-                  <option value="FIRST_AID">FIRST AID & MEDICINE</option>
-                  <option value="BOATS">BOATS & RESCUE</option>
-                  <option value="CHARGING_STATIONS">CHARGING & GENERATORS</option>
-                  <option value="CLOTHES">CLOTHES & BLANKETS</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">ITEM SPECIFICATION</label>
+                <label className="block font-semibold text-slate-300 mb-1">Item Name</label>
                 <input
                   type="text"
+                  required
+                  placeholder="e.g. 500 Food Packets (Veg Biryani)"
                   value={itemName}
                   onChange={(e) => setItemName(e.target.value)}
-                  placeholder="e.g. 20L Water Cans or Food Packets"
-                  required
-                  className="w-full rounded bg-cyber-bg border border-cyber-border p-2.5 text-xs text-white focus:border-cyber-cyan outline-none"
+                  className="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-white focus:border-emerald-500 outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">QUANTITY</label>
+                  <label className="block font-semibold text-slate-300 mb-1">Category</label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-white outline-none"
+                  >
+                    <option value="FOOD">Food</option>
+                    <option value="WATER">Water</option>
+                    <option value="FIRST_AID">Medical / First Aid</option>
+                    <option value="BOATS">Rescue Boat</option>
+                    <option value="CHARGING_STATIONS">Charging Station</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Quantity</label>
                   <input
                     type="number"
                     value={quantity}
                     onChange={(e) => setQuantity(Number(e.target.value))}
-                    min={1}
-                    required
-                    className="w-full rounded bg-cyber-bg border border-cyber-border p-2.5 text-xs text-white focus:border-cyber-cyan outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">UNIT</label>
-                  <input
-                    type="text"
-                    value={unit}
-                    onChange={(e) => setUnit(e.target.value)}
-                    placeholder="packets, cans, kits"
-                    required
-                    className="w-full rounded bg-cyber-bg border border-cyber-border p-2.5 text-xs text-white focus:border-cyber-cyan outline-none"
+                    className="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-white outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">PROVIDER / TRUST CALLSIGN</label>
+                <label className="block font-semibold text-slate-300 mb-1">Provider / Organization Name</label>
                 <input
                   type="text"
                   value={providerName}
                   onChange={(e) => setProviderName(e.target.value)}
-                  required
-                  className="w-full rounded bg-cyber-bg border border-cyber-border p-2.5 text-xs text-white focus:border-cyber-cyan outline-none"
+                  className="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-white outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Contact Phone</label>
+                <input
+                  type="tel"
+                  value={providerPhone}
+                  onChange={(e) => setProviderPhone(e.target.value)}
+                  className="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-white outline-none"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 rounded bg-cyber-cyan text-black font-extrabold text-xs shadow-[0_0_15px_rgba(0,229,255,0.4)] hover:brightness-110 touch-target uppercase tracking-wider"
+                className="w-full mt-2 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-md transition-all active:scale-98"
               >
-                SUBMIT SUPPLIES TO LIVE ROSTER
+                Submit Supply Offer
               </button>
             </form>
           </div>

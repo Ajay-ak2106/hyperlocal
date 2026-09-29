@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { IncidentMap } from '../components/map/IncidentMap.js';
 import { Incident } from '../types/index.js';
-import { Waves, LifeBuoy, AlertTriangle, PhoneCall, ExternalLink, X } from 'lucide-react';
+import { Waves, LifeBuoy, AlertTriangle, PhoneCall, X } from 'lucide-react';
 import { RequestHelpModal } from '../components/modals/RequestHelpModal.js';
 import { ReportFloodModal } from '../components/modals/ReportFloodModal.js';
 import { ReportIncidentModal } from '../components/modals/ReportIncidentModal.js';
@@ -16,36 +16,32 @@ export const MapPage: React.FC = () => {
 
   return (
     <div className="pb-20 pt-2 px-2 sm:px-6 max-w-7xl mx-auto space-y-3">
-      {/* Map Header with Floating Action Buttons */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cyber-border/60 pb-3">
+      {/* Accessible Natural Map Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-700/70 pb-3">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-cyber-green animate-ping shadow-neon-green" />
-            <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-green glow-text-green">
-              TACTICAL GEO-OPS // CHENNAI CRISIS SECTOR
-            </span>
-          </div>
-          <h1 className="text-xl sm:text-2xl font-mono font-black text-white flex items-center gap-2 mt-0.5">
+          <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
             <span>🌐</span>
-            {language === 'ta' ? 'நேரலை பேரிடர் வரைபடம்' : 'LIVE GIS INCIDENT & RELIEF MAP'}
+            {language === 'ta' ? 'நேரலை பேரிடர் வரைபடம்' : 'Live Disaster & Relief Map'}
           </h1>
-          <p className="text-xs font-mono text-slate-400">
-            Realtime GCC/IMD geo-telemetry feed. Tap any sector icon or corridor for telemetry data.
+          <p className="text-xs text-slate-300">
+            {language === 'ta'
+              ? 'வெள்ள நிலவரம், நிவாரண பாதைகள் மற்றும் முகாம்கள்.'
+              : 'Interactive map of flood zones, safe relief corridors, and shelters.'}
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap font-mono">
+        <div className="flex items-center gap-2 flex-wrap text-xs">
           <button
             onClick={() => setShowFloodModal(true)}
-            className="px-3 py-2 rounded bg-cyber-cyan/10 border border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan hover:text-black font-bold text-xs flex items-center gap-1.5 shadow-[0_0_12px_rgba(0,229,255,0.25)] active:scale-95 transition-all touch-target"
+            className="px-3 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all"
           >
             <Waves className="w-4 h-4" />
-            <span>{language === 'ta' ? 'வெள்ளம் பதிவு' : 'Report Water Level'}</span>
+            <span>{language === 'ta' ? 'வெள்ளம் பதிவு' : 'Report Flood'}</span>
           </button>
 
           <button
             onClick={() => setShowIncidentModal(true)}
-            className="px-3 py-2 rounded bg-cyber-amber/10 border border-cyber-amber text-cyber-amber hover:bg-cyber-amber hover:text-black font-bold text-xs flex items-center gap-1.5 shadow-[0_0_12px_rgba(255,183,3,0.25)] active:scale-95 transition-all touch-target"
+            className="px-3 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all"
           >
             <AlertTriangle className="w-4 h-4" />
             <span>{language === 'ta' ? 'விபத்து பதிவு' : 'Report Incident'}</span>
@@ -53,65 +49,79 @@ export const MapPage: React.FC = () => {
 
           <button
             onClick={() => setShowHelpModal(true)}
-            className="px-3 py-2 rounded bg-cyber-red/20 border border-cyber-red text-cyber-red hover:bg-cyber-red hover:text-white font-bold text-xs flex items-center gap-1.5 shadow-neon-red active:scale-95 transition-all touch-target"
+            className="px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all"
           >
-            <LifeBuoy className="w-4 h-4 animate-spin-slow" />
-            <span>{language === 'ta' ? 'உதவி கேட்க' : 'Request Help'}</span>
+            <LifeBuoy className="w-4 h-4" />
+            <span>{language === 'ta' ? 'உதவி கேட்க' : 'Request Help (SOS)'}</span>
           </button>
         </div>
       </div>
 
-      {/* Real Map Canvas */}
-      <IncidentMap onSelectIncident={(inc) => setSelectedIncident(inc)} />
+      {/* Real Map Canvas with Generous Height */}
+      <IncidentMap
+        height="calc(100vh - 220px)"
+        onSelectIncident={(inc) => setSelectedIncident(inc)}
+      />
 
-      {/* Selected Incident Drawer */}
+      {/* Selected Incident Drawer / Card */}
       {selectedIncident && (
-        <div className="fixed bottom-16 left-3 right-3 sm:left-auto sm:right-6 sm:bottom-6 z-50 sm:max-w-md w-full rounded-xl bg-cyber-panel border border-cyber-green/50 p-5 shadow-neon-green animate-in slide-in-from-bottom-4 relative">
-          <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-cyber-green"></div>
-          <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-cyber-green"></div>
-
+        <div className="fixed bottom-16 left-3 right-3 sm:left-auto sm:right-6 sm:bottom-6 z-50 sm:max-w-md w-full rounded-2xl bg-slate-900 border border-slate-700 p-5 shadow-2xl animate-in slide-in-from-bottom-4">
           <div className="flex items-start justify-between gap-3 mb-2">
             <div>
-              <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-cyber-red/20 text-cyber-red border border-cyber-red/40 tracking-wider">
-                [{selectedIncident.type}] // {selectedIncident.severity}
+              <span className={`text-[11px] font-bold uppercase px-2 py-0.5 rounded ${
+                selectedIncident.severity === 'CRITICAL'
+                  ? 'bg-red-900/60 text-red-200 border border-red-500/40'
+                  : 'bg-amber-900/60 text-amber-200 border border-amber-500/40'
+              }`}>
+                {selectedIncident.type} • {selectedIncident.severity}
               </span>
-              <h3 className="text-base font-mono font-extrabold text-white mt-1">
+              <h3 className="text-base font-bold text-white mt-1">
                 {selectedIncident.area}
               </h3>
             </div>
             <button
               onClick={() => setSelectedIncident(null)}
-              className="p-1 rounded text-slate-400 hover:text-white hover:bg-cyber-border transition-colors"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              aria-label="Close details"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          <p className="text-xs text-slate-300 leading-relaxed mb-3 font-sans">
+          <p className="text-xs text-slate-300 leading-relaxed mb-3">
             {selectedIncident.description}
           </p>
 
-          <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 pt-2 border-t border-cyber-border">
-            <span>STATUS: <strong className="text-cyber-green">{selectedIncident.status}</strong></span>
-            <span>VERIFIED: <strong className="text-cyber-cyan">{selectedIncident.verification_status}</strong></span>
+          <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800">
+            <span>Status: <strong className="text-emerald-400">{selectedIncident.status}</strong></span>
+            <span>Verified: <strong className="text-sky-400">{selectedIncident.verification_status}</strong></span>
           </div>
 
           {selectedIncident.reporter_phone && (
             <a
               href={`tel:${selectedIncident.reporter_phone}`}
-              className="mt-3 w-full py-2.5 rounded bg-cyber-red text-white font-mono font-bold text-xs flex items-center justify-center gap-2 hover:brightness-110 shadow-neon-red"
+              className="mt-3 w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-400 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors border border-slate-700"
             >
-              <PhoneCall className="w-4 h-4" />
-              CALL REPORTER: {selectedIncident.reporter_phone}
+              <PhoneCall className="w-3.5 h-3.5" />
+              <span>Call Reporter ({selectedIncident.reporter_phone})</span>
             </a>
           )}
         </div>
       )}
 
       {/* Modals */}
-      <RequestHelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
-      <ReportFloodModal isOpen={showFloodModal} onClose={() => setShowFloodModal(false)} />
-      <ReportIncidentModal isOpen={showIncidentModal} onClose={() => setShowIncidentModal(false)} />
+      <RequestHelpModal
+        isOpen={showHelpModal}
+        onClose={() => setShowHelpModal(false)}
+      />
+      <ReportFloodModal
+        isOpen={showFloodModal}
+        onClose={() => setShowFloodModal(false)}
+      />
+      <ReportIncidentModal
+        isOpen={showIncidentModal}
+        onClose={() => setShowIncidentModal(false)}
+      />
     </div>
   );
 };

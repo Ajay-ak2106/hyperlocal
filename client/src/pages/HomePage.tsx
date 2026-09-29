@@ -12,24 +12,22 @@ import {
   Package,
   Home,
   Mic,
-  HeartHandshake,
   PhoneCall,
   AlertTriangle,
   ArrowRight,
-  Sparkles,
-  Flame,
   Clock,
-  Radio,
-  Gauge,
-  Activity
+  Compass,
+  HeartHandshake
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { IncidentMap } from '../components/map/IncidentMap.js';
 import { RequestHelpModal } from '../components/modals/RequestHelpModal.js';
 import { ReportFloodModal } from '../components/modals/ReportFloodModal.js';
 import { SafetyCheckinModal } from '../components/modals/SafetyCheckinModal.js';
 import { DonateModal } from '../components/modals/DonateModal.js';
 import { HelplinesModal } from '../components/modals/HelplinesModal.js';
 import { VoiceAssistantModal } from '../components/common/VoiceAssistantModal.js';
+import { ReportIncidentModal } from '../components/modals/ReportIncidentModal.js';
 import { getLiveChennaiTelemetry, CommandTelemetry } from '../services/telemetry.js';
 
 export const HomePage: React.FC = () => {
@@ -44,6 +42,7 @@ export const HomePage: React.FC = () => {
   const [showDonateModal, setShowDonateModal] = useState(false);
   const [showHelplineModal, setShowHelplineModal] = useState(false);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const [showIncidentModal, setShowIncidentModal] = useState(false);
 
   // Live Telemetry from TN WRD & Kaggle dataset
   const [telemetry, setTelemetry] = useState<CommandTelemetry | null>(null);
@@ -57,7 +56,6 @@ export const HomePage: React.FC = () => {
     TOTAL: 0
   });
   const [recentIncidents, setRecentIncidents] = useState<Incident[]>([]);
-  const [loading, setLoading] = useState(false);
 
   const fetchHomeData = async () => {
     try {
@@ -67,7 +65,7 @@ export const HomePage: React.FC = () => {
         getLiveChennaiTelemetry()
       ]);
       setSafetySummary(safetyData.summary);
-      setRecentIncidents(incidentsData.slice(0, 6));
+      setRecentIncidents(incidentsData.slice(0, 5));
       setTelemetry(telData);
     } catch (e) {
       console.warn('Error fetching homepage live data:', e);
@@ -79,301 +77,326 @@ export const HomePage: React.FC = () => {
   }, [currentArea, lastRealtimeEvent]);
 
   return (
-    <div className="pb-24 pt-3 px-3 sm:px-6 max-w-7xl mx-auto space-y-5">
-      {/* High-Tech Tactical Command Center Banner (Matching Reference Image) */}
-      <div className="relative overflow-hidden rounded-2xl hud-panel p-5 sm:p-7 border border-[#00ff9d]/30 shadow-[0_0_35px_rgba(0,0,0,0.7)]">
-        {/* Subtle background radar circle */}
-        <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full border border-[#00ff9d]/10 pointer-events-none" />
-        <div className="absolute -right-10 -top-10 w-60 h-60 rounded-full border border-[#00e5ff]/10 pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+    <div className="pb-24 pt-3 px-3 sm:px-6 max-w-7xl mx-auto space-y-6 text-slate-100">
+      
+      {/* 1. Natural Welcome & Alert Banner */}
+      <div className="rounded-2xl p-5 sm:p-6 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border border-slate-700/80 shadow-lg">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-2 font-mono">
-              <span className="text-[11px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-[#00ff9d]/15 text-[#00ff9d] border border-[#00ff9d]/40 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#00ff9d] animate-ping" />
-                TACTICAL SECTOR: {currentArea.toUpperCase()}
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-950/80 text-emerald-300 border border-emerald-600/40">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                {currentArea}
               </span>
-              <span className="text-xs text-[#00e5ff] font-bold">
-                {language === 'ta' ? 'அதிவேக பேரிடர் கட்டளை மையம்' : 'HYPERLOCAL CRISIS COMMAND // 15 ZONES'}
+              <span className="text-xs text-sky-400 font-medium">
+                {language === 'ta' ? 'சென்னை பேரிடர் மையம்' : 'Chennai Disaster Support'}
               </span>
             </div>
-            
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight font-sans">
-              {language === 'ta' ? 'உடனடி உதவி மற்றும் பாதுகாப்பு கட்டுப்பாடு' : 'Disaster Relief & Tactical Operations'}
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed font-sans">
+
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
               {language === 'ta'
-                ? 'வெள்ளப் பாதிப்பு, ஆம்புலன்ஸ், நிவாரண முகாம்கள் மற்றும் தன்னார்வலர் மீட்புப் பணிகளுக்கான நேரடி தளம்.'
-                : 'Real-time telemetry, flood water levels, emergency rescue deployment, and safe camps across Chennai Corporation zones.'}
+                ? 'அவசர உதவி மற்றும் பாதுகாப்பு தளம்'
+                : 'Emergency Response & Disaster Relief'}
+            </h1>
+            <p className="text-sm text-slate-300 mt-1 max-w-2xl">
+              {language === 'ta'
+                ? 'நேரலை வரைபடம், அவசர உதவி, நிவாரண முகாம்கள் மற்றும் ஏரி நீர்மட்டம்.'
+                : 'Live map, emergency assistance, relief shelters, and lake water levels.'}
             </p>
           </div>
 
-          {/* Tactical Voice Assistant Command Button */}
+          {/* Voice Assistant Pill Button */}
           <button
             onClick={() => setShowVoiceModal(true)}
-            className="flex-shrink-0 flex items-center justify-center gap-2.5 px-6 py-4 rounded-xl bg-[#00ff9d] hover:bg-[#5cffbe] text-slate-950 font-mono font-black text-xs shadow-[0_0_25px_rgba(0,255,157,0.45)] active:scale-95 transition-all touch-target border border-[#00ff9d]"
+            className="self-start md:self-center flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-md active:scale-95 transition-all"
+            aria-label="Voice Assistant"
           >
-            <Mic className="w-5 h-5 animate-pulse text-slate-950" />
-            <span className="tracking-wider">{language === 'ta' ? 'குரல் கட்டளை (SPEAK)' : 'VOICE ASSISTANT HUD'}</span>
+            <Mic className="w-4 h-4" />
+            <span>{language === 'ta' ? 'குரல் வழி உதவி' : 'Voice Assistant'}</span>
           </button>
         </div>
 
-        {/* Real Hydro-Meteorological Telemetry Gauge Bar (TN WRD & Kaggle Dataset) */}
+        {/* Real Reservoir & Rainfall Quick Bar */}
         {telemetry && (
-          <div className="mt-5 pt-4 border-t border-[#00ff9d]/20 grid grid-cols-2 md:grid-cols-4 gap-3 font-mono text-xs">
-            <div className="p-2.5 rounded-xl bg-[#060e17] border border-[#00ff9d]/25">
-              <span className="text-[10px] text-slate-400 block mb-0.5">CHEMBARAMBAKKAM RESERVOIR</span>
-              <span className="text-sm font-bold text-[#00ff9d]">
+          <div className="mt-4 pt-3 border-t border-slate-700/70 grid grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-700/60">
+              <span className="text-[11px] text-slate-400 block">{language === 'ta' ? 'செம்பரம்பாக்கம் ஏரி' : 'Chembarambakkam Lake'}</span>
+              <span className="text-sm font-bold text-emerald-400">
                 {telemetry.reservoirs[0].current_level_ft} / {telemetry.reservoirs[0].full_level_ft} ft
               </span>
-              <span className="text-[10px] text-[#ff2a55] block mt-0.5 font-bold">
-                Outflow: {telemetry.reservoirs[0].outflow_cusecs.toLocaleString()} cusecs
+              <span className="text-[10px] text-slate-300 block">
+                {language === 'ta' ? 'வெளியேற்றம்' : 'Outflow'}: {telemetry.reservoirs[0].outflow_cusecs.toLocaleString()} cusecs
               </span>
             </div>
 
-            <div className="p-2.5 rounded-xl bg-[#060e17] border border-[#00e5ff]/25">
-              <span className="text-[10px] text-slate-400 block mb-0.5">POONDI LAKE STORAGE</span>
-              <span className="text-sm font-bold text-[#00e5ff]">
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-700/60">
+              <span className="text-[11px] text-slate-400 block">{language === 'ta' ? 'பூண்டி நீர்த்தேக்கம்' : 'Poondi Reservoir'}</span>
+              <span className="text-sm font-bold text-sky-400">
                 {telemetry.reservoirs[1].current_storage_mcft} / {telemetry.reservoirs[1].capacity_mcft} Mcft
               </span>
-              <span className="text-[10px] text-emerald-400 block mt-0.5 font-bold">
-                Level: {telemetry.reservoirs[1].current_level_ft} ft
+              <span className="text-[10px] text-slate-300 block">
+                {language === 'ta' ? 'நீர்மட்டம்' : 'Level'}: {telemetry.reservoirs[1].current_level_ft} ft
               </span>
             </div>
 
-            <div className="p-2.5 rounded-xl bg-[#060e17] border border-[#ffb703]/25">
-              <span className="text-[10px] text-slate-400 block mb-0.5">IMD MEENAMBAKKAM 24H RAIN</span>
-              <span className="text-sm font-bold text-[#ffb703]">
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-700/60">
+              <span className="text-[11px] text-slate-400 block">{language === 'ta' ? 'மீனம்பாக்கம் மழை' : 'Meenambakkam Rain'}</span>
+              <span className="text-sm font-bold text-amber-400">
                 {telemetry.rainfall_stations[0].rainfall_24h_mm} mm
               </span>
-              <span className="text-[10px] text-[#ffb703] block mt-0.5 font-bold">
-                Status: {telemetry.rainfall_stations[0].intensity.replace('_', ' ')}
+              <span className="text-[10px] text-slate-300 block">
+                {telemetry.rainfall_stations[0].intensity.replace('_', ' ')}
               </span>
             </div>
 
-            <div className="p-2.5 rounded-xl bg-[#060e17] border border-[#ff2a55]/25">
-              <span className="text-[10px] text-slate-400 block mb-0.5">TAMBARAM / MUDICHUR GAUGE</span>
-              <span className="text-sm font-bold text-[#ff2a55]">
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-700/60">
+              <span className="text-[11px] text-slate-400 block">{language === 'ta' ? 'தாம்பரம் / முடிச்சூர்' : 'Tambaram / Mudichur'}</span>
+              <span className="text-sm font-bold text-red-400">
                 {telemetry.rainfall_stations[1].rainfall_24h_mm} mm
               </span>
-              <span className="text-[10px] text-[#ff2a55] block mt-0.5 font-bold">
-                IMD ALERT: RED WARNING
+              <span className="text-[10px] text-red-300 block">
+                {language === 'ta' ? 'கனமழை எச்சரிக்கை' : 'Heavy Rain Warning'}
               </span>
             </div>
           </div>
         )}
 
-        {/* Live SQL Aggregate Safety Ticker */}
-        <div className="mt-4 pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
-          <div className="flex items-center gap-1.5 font-bold text-[#00ff9d] uppercase tracking-wider text-[11px]">
-            <ShieldCheck className="w-4 h-4 text-[#00ff9d]" />
-            <span>{language === 'ta' ? 'சமூக பாதுகாப்பு நிலவரம்:' : 'ZONE SAFETY STATUS TELEMETRY:'}</span>
+        {/* Citizen Safety Counts Bar */}
+        <div className="mt-3 pt-3 border-t border-slate-700/60 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-1.5 font-bold text-slate-300">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span>{language === 'ta' ? 'மக்களின் பாதுகாப்பு நிலை:' : 'Citizen Safety Status:'}</span>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap font-bold">
-            <span className="px-2.5 py-1 rounded-lg bg-[#00ff9d]/15 text-[#00ff9d] border border-[#00ff9d]/40 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#00ff9d]"></span> {safetySummary.SAFE} {language === 'ta' ? 'பாதுகாப்பு' : 'SAFE'}
+          <div className="flex items-center gap-2 flex-wrap font-medium">
+            <span className="px-2.5 py-0.5 rounded-full bg-emerald-950/70 text-emerald-300 border border-emerald-600/40 text-xs">
+              🟢 {safetySummary.SAFE} {language === 'ta' ? 'பாதுகாப்பு' : 'Safe'}
             </span>
-            <span className="px-2.5 py-1 rounded-lg bg-[#ffb703]/15 text-[#ffb703] border border-[#ffb703]/40 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#ffb703]"></span> {safetySummary.NEED_HELP} {language === 'ta' ? 'உதவி தேவை' : 'NEED HELP'}
+            <span className="px-2.5 py-0.5 rounded-full bg-amber-950/70 text-amber-300 border border-amber-600/40 text-xs">
+              🟡 {safetySummary.NEED_HELP} {language === 'ta' ? 'உதவி தேவை' : 'Need Help'}
             </span>
-            <span className="px-2.5 py-1 rounded-lg bg-[#ff2a55]/15 text-[#ff2a55] border border-[#ff2a55]/40 flex items-center gap-1.5 animate-pulse">
-              <span className="w-2 h-2 rounded-full bg-[#ff2a55]"></span> {safetySummary.EMERGENCY} {language === 'ta' ? 'அவசரம்' : 'CRITICAL'}
+            <span className="px-2.5 py-0.5 rounded-full bg-red-950/70 text-red-300 border border-red-600/40 text-xs">
+              🔴 {safetySummary.EMERGENCY} {language === 'ta' ? 'அவசரம்' : 'Critical'}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Main 2 Hero Action Cards (Cyberpunk High-Priority Command Controls) */}
+      {/* 2. Primary 2 Emergency Action Buttons */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* REQUEST RESCUE & MEDICAL HELP */}
+        {/* REQUEST RESCUE / SOS */}
         <button
           onClick={() => setShowHelpModal(true)}
-          className="relative group overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-[#1a080d] via-[#120508] to-[#250a12] border border-[#ff2a55]/50 hover:border-[#ff2a55] text-white shadow-[0_0_30px_rgba(255,42,85,0.2)] flex items-center justify-between transition-all duration-200 active:scale-98 touch-target"
+          className="group p-5 rounded-2xl bg-gradient-to-br from-red-950/90 via-red-900/60 to-slate-900 border border-red-600/60 hover:border-red-500 text-white shadow-lg flex items-center justify-between transition-all active:scale-98"
         >
           <div className="flex items-center gap-4 text-left">
-            <div className="w-14 h-14 rounded-xl bg-[#ff2a55]/20 border border-[#ff2a55]/60 flex items-center justify-center text-3xl shadow-[0_0_15px_rgba(255,42,85,0.4)] flex-shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-red-600/30 border border-red-400/50 flex items-center justify-center text-2xl flex-shrink-0">
               🆘
             </div>
             <div>
-              <div className="text-xl sm:text-2xl font-black tracking-tight leading-none mb-1 font-mono glow-text-red">
+              <div className="text-xl font-bold tracking-tight text-white mb-0.5">
                 {t.requestHelp}
               </div>
-              <p className="text-xs text-rose-200/90 font-sans">
+              <p className="text-xs text-red-200">
                 {language === 'ta'
-                  ? 'மருத்துவம், ஆம்புலன்ஸ், உணவு, படகு மீட்பு'
-                  : 'Medical Escort, Inflatable Boat, Emergency Ration'}
+                  ? 'மருத்துவம், உணவு, படகு மீட்பு மற்றும் அவசர உதவி'
+                  : 'Medical emergency, rescue boats, food rations'}
               </p>
             </div>
           </div>
-          <ArrowRight className="w-6 h-6 text-[#ff2a55] group-hover:translate-x-1.5 transition-transform" />
+          <ArrowRight className="w-5 h-5 text-red-400 group-hover:translate-x-1 transition-transform" />
         </button>
 
-        {/* REPORT FLOOD / CRISIS */}
+        {/* REPORT FLOOD */}
         <button
           onClick={() => setShowFloodModal(true)}
-          className="relative group overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-[#06141c] via-[#050f16] to-[#0a202c] border border-[#00e5ff]/50 hover:border-[#00e5ff] text-white shadow-[0_0_30px_rgba(0,229,255,0.2)] flex items-center justify-between transition-all duration-200 active:scale-98 touch-target"
+          className="group p-5 rounded-2xl bg-gradient-to-br from-sky-950/90 via-sky-900/60 to-slate-900 border border-sky-600/60 hover:border-sky-500 text-white shadow-lg flex items-center justify-between transition-all active:scale-98"
         >
           <div className="flex items-center gap-4 text-left">
-            <div className="w-14 h-14 rounded-xl bg-[#00e5ff]/20 border border-[#00e5ff]/60 flex items-center justify-center text-3xl shadow-[0_0_15px_rgba(0,229,255,0.4)] flex-shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-sky-600/30 border border-sky-400/50 flex items-center justify-center text-2xl flex-shrink-0">
               🌊
             </div>
             <div>
-              <div className="text-xl sm:text-2xl font-black tracking-tight leading-none mb-1 font-mono glow-text-cyan">
+              <div className="text-xl font-bold tracking-tight text-white mb-0.5">
                 {t.reportFlood}
               </div>
-              <p className="text-xs text-cyan-200/90 font-sans">
+              <p className="text-xs text-sky-200">
                 {language === 'ta'
-                  ? 'நீர்மட்டம், தெரு நிலை, AI மதிப்பீடு'
-                  : 'Water Level Stagnation, Street Block, AI Vision Estimate'}
+                  ? 'தெருவில் நீர் தேக்கம், சாலை அடைப்பு தகவல்'
+                  : 'Water level stagnation, flooded streets'}
               </p>
             </div>
           </div>
-          <ArrowRight className="w-6 h-6 text-[#00e5ff] group-hover:translate-x-1.5 transition-transform" />
+          <ArrowRight className="w-5 h-5 text-sky-400 group-hover:translate-x-1 transition-transform" />
         </button>
       </div>
 
-      {/* Grid of Tactical Command Services */}
-      <div>
-        <div className="flex items-center justify-between mb-3 px-1 font-mono">
-          <h2 className="text-xs font-bold text-[#00ff9d] uppercase tracking-widest flex items-center gap-2">
-            <Activity className="w-3.5 h-3.5" />
-            {language === 'ta' ? 'அதிவேக அவசரச் செயல்பாடுகள்' : 'TACTICAL COMMAND MATRIX // 8 SERVICES'}
-          </h2>
-          <span className="text-[10px] text-slate-500">REALTIME DISPATCH</span>
+      {/* 3. PROMINENT EMBEDDED MAP FEATURE (RIGHT ON HOME PAGE) */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between px-1">
+          <div>
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <Compass className="w-5 h-5 text-emerald-400" />
+              <span>{language === 'ta' ? 'நேரலை பேரிடர் வரைபடம்' : 'Live Disaster Map'}</span>
+            </h2>
+            <p className="text-xs text-slate-300">
+              {language === 'ta'
+                ? 'பாதுகாப்பு முகாம்கள், நிவாரண பாதைகள் மற்றும் வெள்ளப் பகுதிகள்.'
+                : 'Safe shelters, evacuation routes, and active flood zones.'}
+            </p>
+          </div>
+
+          <button
+            onClick={() => navigate('/map')}
+            className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700"
+          >
+            <span>{language === 'ta' ? 'பெரிதாக்கு' : 'Full Map'}</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
         </div>
+
+        {/* The Live Interactive IncidentMap */}
+        <IncidentMap height="460px" />
+      </div>
+
+      {/* 4. Quick Services Grid (8 accessible cards) */}
+      <div>
+        <h2 className="text-sm font-bold text-slate-300 mb-3 px-1">
+          {language === 'ta' ? 'விரைவு சேவைகள்' : 'Quick Actions'}
+        </h2>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {/* I AM SAFE */}
           <button
             onClick={() => setShowSafetyModal(true)}
-            className="flex flex-col items-center justify-center p-4 rounded-xl hud-panel border border-[#00ff9d]/35 hover:border-[#00ff9d] text-[#00ff9d] transition-all active:scale-95 touch-target shadow-lg group"
+            className="flex flex-col items-center justify-center p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 transition-all text-center group shadow-sm active:scale-95"
           >
-            <span className="text-2xl mb-1.5 group-hover:scale-110 transition-transform">🟢</span>
-            <span className="font-bold font-mono text-sm text-white">{t.iAmSafe}</span>
+            <span className="text-2xl mb-1 group-hover:scale-110 transition-transform">🟢</span>
+            <span className="font-bold text-xs text-white">{t.iAmSafe}</span>
             <span className="text-[10px] text-slate-400 mt-0.5">
               {language === 'ta' ? 'பாதுகாப்பு பதிவு' : 'Check-in Safe'}
-            </span>
-          </button>
-
-          {/* INCIDENT MAP */}
-          <button
-            onClick={() => navigate('/map')}
-            className="flex flex-col items-center justify-center p-4 rounded-xl hud-panel border border-[#00e5ff]/35 hover:border-[#00e5ff] text-[#00e5ff] transition-all active:scale-95 touch-target shadow-lg group"
-          >
-            <span className="text-2xl mb-1.5 group-hover:scale-110 transition-transform">📍</span>
-            <span className="font-bold font-mono text-sm text-white">{t.incidentMap}</span>
-            <span className="text-[10px] text-slate-400 mt-0.5">
-              {language === 'ta' ? 'நேரடி வரைபடம்' : 'Live Tactical Map'}
-            </span>
-          </button>
-
-          {/* VOLUNTEER */}
-          <button
-            onClick={() => navigate('/volunteer')}
-            className="flex flex-col items-center justify-center p-4 rounded-xl hud-panel border border-[#00ff9d]/35 hover:border-[#00ff9d] text-[#00ff9d] transition-all active:scale-95 touch-target shadow-lg group"
-          >
-            <span className="text-2xl mb-1.5 group-hover:scale-110 transition-transform">🙋</span>
-            <span className="font-bold font-mono text-sm text-white">{t.volunteer}</span>
-            <span className="text-[10px] text-slate-400 mt-0.5">
-              {language === 'ta' ? 'மீட்புப் பணி' : 'Rescue Squad'}
             </span>
           </button>
 
           {/* SHELTERS */}
           <button
             onClick={() => navigate('/shelters')}
-            className="flex flex-col items-center justify-center p-4 rounded-xl hud-panel border border-[#00ff9d]/35 hover:border-[#00ff9d] text-[#00ff9d] transition-all active:scale-95 touch-target shadow-lg group"
+            className="flex flex-col items-center justify-center p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 transition-all text-center group shadow-sm active:scale-95"
           >
-            <span className="text-2xl mb-1.5 group-hover:scale-110 transition-transform">🏠</span>
-            <span className="font-bold font-mono text-sm text-white">{t.shelters}</span>
+            <span className="text-2xl mb-1 group-hover:scale-110 transition-transform">🏠</span>
+            <span className="font-bold text-xs text-white">{t.shelters}</span>
             <span className="text-[10px] text-slate-400 mt-0.5">
-              {language === 'ta' ? 'நிவாரண முகாம்கள்' : 'GCC Safe Camps'}
+              {language === 'ta' ? 'நிவாரண முகாம்கள்' : 'Safe Shelters'}
             </span>
           </button>
 
           {/* RESOURCES */}
           <button
             onClick={() => navigate('/resources')}
-            className="flex flex-col items-center justify-center p-4 rounded-xl hud-panel border border-[#ffb703]/35 hover:border-[#ffb703] text-[#ffb703] transition-all active:scale-95 touch-target shadow-lg group"
+            className="flex flex-col items-center justify-center p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 transition-all text-center group shadow-sm active:scale-95"
           >
-            <span className="text-2xl mb-1.5 group-hover:scale-110 transition-transform">📦</span>
-            <span className="font-bold font-mono text-sm text-white">{t.resources}</span>
+            <span className="text-2xl mb-1 group-hover:scale-110 transition-transform">📦</span>
+            <span className="font-bold text-xs text-white">{t.resources}</span>
             <span className="text-[10px] text-slate-400 mt-0.5">
-              {language === 'ta' ? 'உணவு, குடிநீர், படகுகள்' : 'Boats & Rations'}
+              {language === 'ta' ? 'உணவு, குடிநீர்' : 'Food & Boats'}
+            </span>
+          </button>
+
+          {/* VOLUNTEER */}
+          <button
+            onClick={() => navigate('/volunteer')}
+            className="flex flex-col items-center justify-center p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 transition-all text-center group shadow-sm active:scale-95"
+          >
+            <span className="text-2xl mb-1 group-hover:scale-110 transition-transform">🙋</span>
+            <span className="font-bold text-xs text-white">{t.volunteer}</span>
+            <span className="text-[10px] text-slate-400 mt-0.5">
+              {language === 'ta' ? 'தன்னார்வலர்' : 'Volunteer'}
             </span>
           </button>
 
           {/* COMMUNITY */}
           <button
             onClick={() => navigate('/community')}
-            className="flex flex-col items-center justify-center p-4 rounded-xl hud-panel border border-[#00e5ff]/35 hover:border-[#00e5ff] text-[#00e5ff] transition-all active:scale-95 touch-target shadow-lg group"
+            className="flex flex-col items-center justify-center p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 transition-all text-center group shadow-sm active:scale-95"
           >
-            <span className="text-2xl mb-1.5 group-hover:scale-110 transition-transform">👥</span>
-            <span className="font-bold font-mono text-sm text-white">{t.community}</span>
+            <span className="text-2xl mb-1 group-hover:scale-110 transition-transform">👥</span>
+            <span className="font-bold text-xs text-white">{t.community}</span>
             <span className="text-[10px] text-slate-400 mt-0.5">
-              {language === 'ta' ? 'உள்ளூர் நேரலை பதிவுகள்' : 'Ward Intel Feed'}
+              {language === 'ta' ? 'உள்ளூர் தகவல்கள்' : 'Local Updates'}
+            </span>
+          </button>
+
+          {/* REPORT OTHER INCIDENT */}
+          <button
+            onClick={() => setShowIncidentModal(true)}
+            className="flex flex-col items-center justify-center p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 transition-all text-center group shadow-sm active:scale-95"
+          >
+            <span className="text-2xl mb-1 group-hover:scale-110 transition-transform">⚠️</span>
+            <span className="font-bold text-xs text-white">{language === 'ta' ? 'விபத்து பதிவு' : 'Report Incident'}</span>
+            <span className="text-[10px] text-slate-400 mt-0.5">
+              {language === 'ta' ? 'தீ, மரம் விழுந்தது' : 'Road block, fire'}
             </span>
           </button>
 
           {/* RELIEF FUND */}
           <button
             onClick={() => setShowDonateModal(true)}
-            className="flex flex-col items-center justify-center p-4 rounded-xl hud-panel border border-[#00ff9d]/35 hover:border-[#00ff9d] text-[#00ff9d] transition-all active:scale-95 touch-target shadow-lg group"
+            className="flex flex-col items-center justify-center p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 transition-all text-center group shadow-sm active:scale-95"
           >
-            <span className="text-2xl mb-1.5 group-hover:scale-110 transition-transform">💰</span>
-            <span className="font-bold font-mono text-sm text-white">{t.reliefFund}</span>
+            <span className="text-2xl mb-1 group-hover:scale-110 transition-transform">💰</span>
+            <span className="font-bold text-xs text-white">{t.reliefFund}</span>
             <span className="text-[10px] text-slate-400 mt-0.5">
-              {language === 'ta' ? 'நிவாரண நிதி' : 'Disaster Relief Fund'}
+              {language === 'ta' ? 'நிதி உதவி' : 'Donate Fund'}
             </span>
           </button>
 
           {/* HELPLINES */}
           <button
             onClick={() => setShowHelplineModal(true)}
-            className="flex flex-col items-center justify-center p-4 rounded-xl hud-panel border border-[#ff2a55]/40 hover:border-[#ff2a55] text-[#ff2a55] transition-all active:scale-95 touch-target shadow-lg group"
+            className="flex flex-col items-center justify-center p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-red-500/40 text-red-300 transition-all text-center group shadow-sm active:scale-95"
           >
-            <span className="text-2xl mb-1.5 group-hover:scale-110 transition-transform">📞</span>
-            <span className="font-bold font-mono text-sm text-white">{t.helplines}</span>
+            <span className="text-2xl mb-1 group-hover:scale-110 transition-transform">📞</span>
+            <span className="font-bold text-xs text-white">{t.helplines}</span>
             <span className="text-[10px] text-slate-400 mt-0.5">
-              1913, 1070, 108, 112
+              1913 • 1070 • 108
             </span>
           </button>
         </div>
       </div>
 
-      {/* Live Sector Inundation & Crisis Incident Stream (Real GCC & Kaggle Records) */}
-      <div className="pt-2">
-        <div className="flex items-center justify-between mb-3 px-1 font-mono">
+      {/* 5. Recent Verified Incident Reports */}
+      <div className="pt-1">
+        <div className="flex items-center justify-between mb-3 px-1">
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-[#00ff9d]" />
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-              {language === 'ta' ? 'அண்மைப் பேரிடர் அறிக்கைகள் (GCC தரவு)' : 'TACTICAL INCIDENT LOG // GCC ZONE ALERTS'}
+            <Clock className="w-4 h-4 text-emerald-400" />
+            <h2 className="text-sm font-bold text-white">
+              {language === 'ta' ? 'அண்மை நிலவரங்கள்' : 'Recent Incident Reports'}
             </h2>
           </div>
           <button
             onClick={() => navigate('/map')}
-            className="text-xs text-[#00ff9d] hover:text-[#5cffbe] font-bold flex items-center gap-1.5"
+            className="text-xs text-emerald-400 hover:text-emerald-300 font-medium"
           >
-            <span>{language === 'ta' ? 'வரைபடத்தில் பார்க்க' : 'EXPAND TACTICAL MAP'}</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            {language === 'ta' ? 'அனைத்தும் பார்க்க' : 'View all'}
           </button>
         </div>
 
-        <div className="space-y-2.5">
+        <div className="space-y-2">
           {recentIncidents.length === 0 ? (
-            <div className="p-8 rounded-xl hud-panel text-center text-xs text-slate-400 font-mono">
-              Sector telemetry stable. No critical flood reports in {currentArea}.
+            <div className="p-6 rounded-xl bg-slate-800/60 border border-slate-700/60 text-center text-xs text-slate-400">
+              {language === 'ta'
+                ? 'தற்போது அவசர புகார்கள் ஏதுமில்லை.'
+                : `No active emergencies reported in ${currentArea}.`}
             </div>
           ) : (
             recentIncidents.map((inc) => (
               <div
                 key={inc.id}
                 onClick={() => navigate('/map')}
-                className="p-3.5 rounded-xl hud-panel hover:border-[#00ff9d]/50 transition-all flex items-start justify-between gap-3 cursor-pointer shadow-sm group"
+                className="p-3 rounded-xl bg-slate-800/70 hover:bg-slate-700/70 border border-slate-700/60 transition-all flex items-start justify-between gap-3 cursor-pointer shadow-sm"
               >
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-[#060e17] border border-[#00ff9d]/30 flex items-center justify-center text-xl flex-shrink-0 group-hover:scale-105 transition-transform">
+                  <div className="w-9 h-9 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center text-lg flex-shrink-0">
                     {inc.type === 'FLOOD' && '🌊'}
                     {inc.type === 'FIRE' && '🔥'}
                     {inc.type === 'MEDICAL' && '🏥'}
@@ -385,34 +408,29 @@ export const HomePage: React.FC = () => {
                     {inc.type === 'EMERGENCY' && '🆘'}
                   </div>
                   <div>
-                    <div className="flex items-center gap-2 font-mono">
+                    <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-white">{inc.type}</span>
                       <span
-                        className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded border ${
+                        className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${
                           inc.severity === 'CRITICAL'
-                            ? 'bg-[#ff2a55]/20 text-[#ff2a55] border-[#ff2a55]/50'
+                            ? 'bg-red-900/60 text-red-200'
                             : inc.severity === 'HIGH'
-                            ? 'bg-[#ffb703]/20 text-[#ffb703] border-[#ffb703]/50'
-                            : 'bg-slate-800 text-slate-300 border-slate-700'
+                            ? 'bg-amber-900/60 text-amber-200'
+                            : 'bg-slate-700 text-slate-200'
                         }`}
                       >
                         {inc.severity}
                       </span>
-                      <span className="text-[10px] text-[#00e5ff]">📍 {inc.area}</span>
+                      <span className="text-xs text-slate-400">📍 {inc.area}</span>
                     </div>
-                    <p className="text-xs text-slate-300 mt-1 font-sans leading-snug line-clamp-2">
+                    <p className="text-xs text-slate-300 mt-1 leading-snug line-clamp-1">
                       {inc.description}
                     </p>
                   </div>
                 </div>
 
-                <div className="text-right flex-shrink-0 font-mono">
-                  <span className="text-[10px] text-slate-400 block">
-                    {new Date(inc.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                  <span className="text-[9px] font-bold uppercase text-[#00ff9d] mt-1 block">
-                    {inc.verification_status}
-                  </span>
+                <div className="text-right flex-shrink-0 text-xs text-slate-400">
+                  {new Date(inc.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
               </div>
             ))
@@ -420,7 +438,7 @@ export const HomePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Modals rendered on trigger */}
+      {/* Modals */}
       <RequestHelpModal
         isOpen={showHelpModal}
         onClose={() => setShowHelpModal(false)}
@@ -443,6 +461,11 @@ export const HomePage: React.FC = () => {
       <HelplinesModal
         isOpen={showHelplineModal}
         onClose={() => setShowHelplineModal(false)}
+      />
+      <ReportIncidentModal
+        isOpen={showIncidentModal}
+        onClose={() => setShowIncidentModal(false)}
+        onSuccess={fetchHomeData}
       />
       <VoiceAssistantModal
         isOpen={showVoiceModal}

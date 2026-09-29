@@ -27,12 +27,11 @@ interface ReportIncidentModalProps {
 }
 
 export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { user, profile, currentArea, coords, t, language } = useAuth();
+  const { currentArea, coords, t, language } = useAuth();
 
   const [type, setType] = useState<IncidentType>('ROAD_BLOCK');
   const [severity, setSeverity] = useState<SeverityLevel>('HIGH');
   const [description, setDescription] = useState('');
-  const [numberAffected, setNumberAffected] = useState(5);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
@@ -44,10 +43,10 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
   if (!isOpen) return null;
 
   const incidentTypes: { id: IncidentType; labelTa: string; labelEn: string; icon: any }[] = [
-    { id: 'FIRE', labelTa: 'தீ விபத்து', labelEn: 'Fire', icon: Flame },
-    { id: 'CYCLONE', labelTa: 'புயல் சேதம்', labelEn: 'Cyclone / Wind', icon: Wind },
-    { id: 'ROAD_BLOCK', labelTa: 'சாலை அடைப்பு', labelEn: 'Road Block / Tree Fall', icon: Car },
-    { id: 'POWER_ISSUE', labelTa: 'மின் தடை / கேபிள்', labelEn: 'Power Emergency', icon: Zap },
+    { id: 'ROAD_BLOCK', labelTa: 'சாலை அடைப்பு / மரம்', labelEn: 'Road Block / Tree Fall', icon: Car },
+    { id: 'POWER_ISSUE', labelTa: 'மின் தடை / கேபிள்', labelEn: 'Power Cable Issue', icon: Zap },
+    { id: 'FIRE', labelTa: 'தீ விபத்து', labelEn: 'Fire Incident', icon: Flame },
+    { id: 'CYCLONE', labelTa: 'புயல் சேதம்', labelEn: 'Cyclone Damage', icon: Wind },
     { id: 'BUILDING_DAMAGE', labelTa: 'கட்டட சேதம்', labelEn: 'Building Damage', icon: Building },
     { id: 'MISSING_PERSON', labelTa: 'காணாமல் போனவர்', labelEn: 'Missing Person', icon: UserX },
     { id: 'EMERGENCY', labelTa: 'பொது அவசரம்', labelEn: 'General Emergency', icon: AlertTriangle },
@@ -100,35 +99,25 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
         setMediaRecorder(recorder);
         setIsRecording(true);
       } catch (err) {
-        setError('Microphone access denied. You can proceed without audio.');
+        setError('Microphone access unavailable.');
       }
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!description.trim()) {
-      setError('Please provide a short description.');
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
     const payload = {
-      reporter_id: user?.id || 'user-citizen-1',
-      reporter_name: profile?.name || 'Citizen Reporter',
-      reporter_phone: profile?.mobile_number || '',
       type,
       severity,
-      description,
-      area: currentArea,
+      description: description.trim(),
       latitude: coords.latitude,
       longitude: coords.longitude,
-      number_affected: Number(numberAffected),
-      photo_url: photoUrl,
-      audio_url: audioUrl,
-      is_demo: 1
+      area: currentArea,
+      photo_url: photoUrl || undefined,
+      audio_url: audioUrl || undefined
     };
 
     try {
@@ -157,49 +146,49 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-      <div className="w-full max-w-lg rounded-2xl bg-cyber-panel border border-cyber-amber/50 p-5 sm:p-7 shadow-xl shadow-amber-950/40 relative my-auto">
-        <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-cyber-amber"></div>
-        <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-cyber-amber"></div>
-
-        <div className="flex items-center justify-between pb-3 border-b border-cyber-border font-mono">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+      <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-700 p-5 sm:p-6 shadow-2xl relative my-auto">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded bg-cyber-amber/20 text-cyber-amber flex items-center justify-center border border-cyber-amber/40">
-              <AlertTriangle className="w-4 h-4 animate-pulse" />
+            <div className="w-9 h-9 rounded-xl bg-amber-600/30 text-amber-400 flex items-center justify-center border border-amber-500/40">
+              <AlertTriangle className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base sm:text-lg font-mono font-bold text-white uppercase">
-                {language === 'ta' ? 'பேரிடர் / விபத்து பதிவு' : 'TRANSMIT INCIDENT TELEMETRY'}
+              <h3 className="text-base sm:text-lg font-bold text-white">
+                {language === 'ta' ? 'விபத்து அல்லது ஆபத்து பதிவு' : 'Report Hazard or Incident'}
               </h3>
-              <p className="text-xs font-mono text-slate-400 flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-cyber-amber" />
-                SECTOR: {currentArea} (GPS ENCRYPTED)
+              <p className="text-xs text-slate-300 flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-amber-400" />
+                {currentArea}
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1 rounded text-slate-400 hover:text-white">
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {success ? (
-          <div className="py-12 flex flex-col items-center justify-center text-center font-mono">
-            <CheckCircle2 className="w-16 h-16 text-cyber-green animate-bounce mb-3 glow-text-green" />
-            <h4 className="text-lg font-bold text-white uppercase">
-              {language === 'ta' ? 'பேரிடர் அறிக்கை அனுப்பப்பட்டது!' : 'TELEMETRY BROADCASTED!'}
+          <div className="py-12 flex flex-col items-center justify-center text-center">
+            <CheckCircle2 className="w-16 h-16 text-emerald-400 mb-3" />
+            <h4 className="text-lg font-bold text-white">
+              {language === 'ta' ? 'அறிக்கை பதிவு செய்யப்பட்டது!' : 'Incident Report Recorded!'}
             </h4>
-            <p className="text-xs text-slate-400 font-sans mt-1 max-w-xs">
+            <p className="text-xs text-slate-300 mt-1 max-w-xs">
               {language === 'ta'
-                ? 'அதிகாரிகள் மற்றும் தன்னார்வலர்களின் நேரடி வரைபடத்தில் இது உடனடியாகத் தோன்றும்.'
-                : 'Visible immediately on the tactical GIS grid and central control dashboard.'}
+                ? 'நேரலை வரைபடத்தில் இந்த விவரம் சேர்க்கப்பட்டுள்ளது.'
+                : 'Visible immediately on the disaster response map.'}
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="mt-4 space-y-4 font-mono">
+          <form onSubmit={handleSubmit} className="mt-4 space-y-4">
             {/* Type selector */}
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-                1. {language === 'ta' ? 'பேரிடர் வகை (ஒரு-தட்டு)' : 'INCIDENT VECTOR'}
+              <label className="block text-xs font-bold text-slate-200 uppercase mb-2">
+                1. {language === 'ta' ? 'விபத்து வகை' : 'Incident Type'}
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {incidentTypes.map((tItem) => {
@@ -210,10 +199,10 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
                       type="button"
                       key={tItem.id}
                       onClick={() => setType(tItem.id)}
-                      className={`flex items-center gap-2 p-2 rounded text-left transition-all active:scale-95 touch-target border ${
+                      className={`flex items-center gap-2 p-2.5 rounded-xl text-left transition-all border ${
                         isSelected
-                          ? 'bg-cyber-amber text-black border-cyber-amber font-extrabold shadow-[0_0_12px_rgba(255,183,3,0.4)]'
-                          : 'bg-cyber-bg border-cyber-border text-slate-300 hover:border-cyber-amber/50'
+                          ? 'bg-amber-600 text-white border-amber-500 font-bold shadow-sm'
+                          : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700/80'
                       }`}
                     >
                       <Icon className="w-4 h-4 flex-shrink-0" />
@@ -228,8 +217,8 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
 
             {/* Severity */}
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-                2. {language === 'ta' ? 'தீவிரம்' : 'CRISIS SEVERITY LEVEL'}
+              <label className="block text-xs font-bold text-slate-200 uppercase mb-2">
+                2. {language === 'ta' ? 'தீவிரம்' : 'Severity Level'}
               </label>
               <div className="grid grid-cols-4 gap-2">
                 {(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as SeverityLevel[]).map((lvl) => (
@@ -237,12 +226,12 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
                     type="button"
                     key={lvl}
                     onClick={() => setSeverity(lvl)}
-                    className={`py-2 rounded text-xs font-bold border transition-all ${
+                    className={`py-2 rounded-xl text-xs font-bold transition-all border ${
                       severity === lvl
                         ? lvl === 'CRITICAL'
-                          ? 'bg-cyber-red text-white border-cyber-red shadow-neon-red font-black'
-                          : 'bg-cyber-amber text-black border-cyber-amber font-black shadow-[0_0_10px_rgba(255,183,3,0.4)]'
-                        : 'bg-cyber-bg border-cyber-border text-slate-400 hover:text-white'
+                          ? 'bg-red-600 text-white border-red-500'
+                          : 'bg-amber-600 text-white border-amber-500'
+                        : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
                     }`}
                   >
                     {lvl}
@@ -253,8 +242,8 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
 
             {/* Description */}
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                3. {language === 'ta' ? 'விவரம்' : 'FIELD OBSERVATION REMARKS'}
+              <label className="block text-xs font-bold text-slate-200 uppercase mb-1.5">
+                3. {language === 'ta' ? 'விவரம்' : 'Details / Remarks'}
               </label>
               <textarea
                 value={description}
@@ -263,18 +252,18 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
                 rows={2}
                 placeholder={
                   language === 'ta'
-                    ? 'எ.கா: மின் கம்பி அறுந்து விழுந்துள்ளது, மரம் முறிந்து சாலை அடைப்பு...'
-                    : 'e.g. Fallen transformer cables on road, tree fallen near subway blocking transit...'
+                    ? 'எ.கா: மரம் விழுந்து சாலை அடைக்கப்பட்டுள்ளது, மின் கம்பி அறுந்து கிடக்கிறது...'
+                    : 'e.g. Tree fallen on main road blocking traffic, power lines down...'
                 }
-                className="w-full rounded bg-cyber-bg border border-cyber-border p-3 text-xs text-white placeholder-slate-500 font-sans focus:border-cyber-amber outline-none"
+                className="w-full rounded-xl bg-slate-800 border border-slate-700 p-3 text-xs text-white placeholder-slate-400 focus:border-amber-500 outline-none"
               />
             </div>
 
             {/* Photo & Audio */}
             <div className="grid grid-cols-2 gap-2">
-              <label className="flex items-center justify-center gap-2 p-2.5 rounded bg-cyber-bg hover:bg-cyber-panel border border-cyber-border cursor-pointer text-xs font-bold text-slate-200 transition-colors">
-                <Camera className="w-4 h-4 text-cyber-amber" />
-                <span>{photoUrl ? '✓ OPTICAL CAPTURED' : t.takePhoto}</span>
+              <label className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 cursor-pointer text-xs font-semibold text-slate-200 transition-colors">
+                <Camera className="w-4 h-4 text-amber-400" />
+                <span>{photoUrl ? '✓ Photo Added' : t.takePhoto}</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -287,21 +276,21 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
               <button
                 type="button"
                 onClick={handleToggleVoiceRecord}
-                className={`flex items-center justify-center gap-2 p-2.5 rounded border text-xs font-bold transition-all ${
+                className={`flex items-center justify-center gap-2 p-2.5 rounded-xl border text-xs font-semibold transition-all ${
                   isRecording
-                    ? 'bg-cyber-red text-white border-cyber-red animate-pulse'
+                    ? 'bg-red-600 text-white border-red-500 animate-pulse'
                     : audioUrl
-                    ? 'bg-cyber-green/20 border-cyber-green text-cyber-green'
-                    : 'bg-cyber-bg hover:bg-cyber-panel border-cyber-border text-slate-200'
+                    ? 'bg-emerald-600/30 border-emerald-500 text-emerald-300'
+                    : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200'
                 }`}
               >
-                {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4 text-cyber-amber" />}
-                <span>{isRecording ? t.stopRecording : audioUrl ? '✓ AUDIO SAVED' : t.recordAudio}</span>
+                {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4 text-amber-400" />}
+                <span>{isRecording ? t.stopRecording : audioUrl ? '✓ Voice Saved' : t.recordAudio}</span>
               </button>
             </div>
 
             {error && (
-              <p className="text-xs text-cyber-red bg-cyber-red/10 p-2.5 rounded border border-cyber-red/40 font-mono">
+              <p className="text-xs text-red-300 bg-red-950/60 p-2.5 rounded-xl border border-red-700/60">
                 {error}
               </p>
             )}
@@ -309,10 +298,10 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded bg-cyber-amber text-black hover:brightness-110 font-black text-xs uppercase tracking-wider shadow-[0_0_15px_rgba(255,183,3,0.35)] flex items-center justify-center gap-2 active:scale-98 transition-all touch-target"
+              className="w-full py-3.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 active:scale-98 transition-all"
             >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin text-black" /> : <AlertTriangle className="w-4 h-4" />}
-              <span>{language === 'ta' ? 'அறிக்கையை சமர்ப்பிக்கவும்' : 'BROADCAST INCIDENT TO HQ'}</span>
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <AlertTriangle className="w-5 h-5" />}
+              <span>{language === 'ta' ? 'அறிக்கையை சமர்ப்பிக்கவும்' : 'Submit Incident Report'}</span>
             </button>
           </form>
         )}
