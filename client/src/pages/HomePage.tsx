@@ -31,7 +31,7 @@ import { ReportIncidentModal } from '../components/modals/ReportIncidentModal.js
 import { getLiveChennaiTelemetry, CommandTelemetry } from '../services/telemetry.js';
 
 export const HomePage: React.FC = () => {
-  const { currentArea, language, t } = useAuth();
+  const { currentArea, language, t, gpsActive, coords, requestGps } = useAuth();
   const { lastRealtimeEvent } = useRealtime();
   const navigate = useNavigate();
 
@@ -83,10 +83,23 @@ export const HomePage: React.FC = () => {
       <div className="rounded-2xl p-5 sm:p-6 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border border-slate-700/80 shadow-lg">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1.5">
+            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-950/80 text-emerald-300 border border-emerald-600/40">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                {currentArea}
+                <span className={`w-2 h-2 rounded-full ${gpsActive ? 'bg-emerald-400 animate-pulse' : 'bg-emerald-400'}`}></span>
+                <span>{currentArea}</span>
+                {gpsActive ? (
+                  <span className="text-[10px] text-emerald-400 font-mono">
+                    ({Number(coords.latitude).toFixed(3)}°N, {Number(coords.longitude).toFixed(3)}°E)
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => requestGps()}
+                    className="text-[10px] text-sky-400 hover:underline flex items-center gap-0.5 ml-1"
+                    title="Enable GPS"
+                  >
+                    <span>• {language === 'ta' ? 'GPS இயக்கு' : 'Sync GPS'}</span>
+                  </button>
+                )}
               </span>
               <span className="text-xs text-sky-400 font-medium">
                 {language === 'ta' ? 'சென்னை பேரிடர் மையம்' : 'Chennai Disaster Support'}

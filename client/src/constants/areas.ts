@@ -29,3 +29,123 @@ export const getAreaLocation = (areaName: string): AreaLocation => {
   );
   return found || CHENNAI_AREAS[0];
 };
+
+export const findNearestArea = (lat: number, lng: number): AreaLocation => {
+  let minDistance = Infinity;
+  let closest = CHENNAI_AREAS[0];
+
+  for (const area of CHENNAI_AREAS) {
+    const dLat = (area.latitude - lat) * (Math.PI / 180);
+    const dLon = (area.longitude - lng) * (Math.PI / 180);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat * (Math.PI / 180)) *
+        Math.cos(area.latitude * (Math.PI / 180)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const d = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    if (d < minDistance) {
+      minDistance = d;
+      closest = area;
+    }
+  }
+
+  return closest;
+};
+
+export const reverseGeocode = async (
+  lat: number,
+  lng: number
+): Promise<{ areaName: string; displayName?: string; landmark?: string }> => {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2600);
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=17&addressdetails=1`,
+      {
+        headers: { 'Accept-Language': 'en' },
+        signal: controller.signal
+      }
+    );
+    clearTimeout(timeoutId);
+    if (!res.ok) throw new Error('Geocode failed');
+    const data = await res.json();
+    const addr = data.address || {};
+    const locality =
+      addr.suburb ||
+      addr.neighbourhood ||
+      addr.residential ||
+      addr.quarter ||
+      addr.city_district ||
+      addr.town ||
+      addr.village ||
+      addr.city ||
+      findNearestArea(lat, lng).name;
+    const landmark = addr.road || addr.amenity || addr.building || data.display_name?.split(',')?.[0];
+    return { areaName: locality, displayName: data.display_name, landmark };
+  } catch {
+    const nearest = findNearestArea(lat, lng);
+    return { areaName: nearest.name };
+  }
+};
+
+export const geocodeAddress = async (
+  query: string
+): Promise<{ latitude: number; longitude: number; displayName: string; areaName: string }[]> => {
+  if (!query || query.trim().length < 2) return [];
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    const cleanQuery = query.toLowerCase().includes('chennai') || query.toLowerCase().includes('tamil') 
+      ? query 
+      : `${query}, Chennai`;
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+        cleanQuery
+      )}&limit=5&addressdetails=1&viewbox=79.8,13.4,80.4,12.7`,
+      {
+        headers: { 'Accept-Language': 'en' },
+        signal: controller.signal
+      }
+    );
+    clearTimeout(timeoutId);
+    if (!res.ok) throw new Error('Search failed');
+    const list = await res.json();
+    if (Array.isArray(list) && list.length > 0) {
+      return list.map((item: any) => {
+        const lat = parseFloat(item.lat);
+        const lon = parseFloat(item.lon);
+        const addr = item.address || {};
+        const areaName =
+          addr.suburb ||
+          addr.neighbourhood ||
+          addr.residential ||
+          addr.quarter ||
+          addr.city ||
+          findNearestArea(lat, lon).name;
+        return {
+          latitude: lat,
+          longitude: lon,
+          displayName: item.display_name,
+          areaName
+        };
+      });
+    }
+    throw new Error('No results from online search');
+  } catch {
+    // Offline / Local match fallback
+    const qLower = query.toLowerCase();
+    const matches = CHENNAI_AREAS.filter(
+      (a) =>
+        a.name.toLowerCase().includes(qLower) ||
+        a.nameTa.includes(query) ||
+        a.zone.toLowerCase().includes(qLower)
+    );
+    return matches.map((m) => ({
+      latitude: m.latitude,
+      longitude: m.longitude,
+      displayName: `${m.name} (${m.nameTa}), Chennai — ${m.zone}`,
+      areaName: m.name
+    }));
+  }
+};

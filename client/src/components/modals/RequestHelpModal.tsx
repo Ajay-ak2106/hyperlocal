@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { offlineManager } from '../../services/offline.js';
 import { CHENNAI_AREAS, getAreaLocation } from '../../constants/areas.js';
+import { LocationPicker } from '../common/LocationPicker.js';
 
 interface RequestHelpModalProps {
   isOpen: boolean;
@@ -269,66 +270,34 @@ export const RequestHelpModal: React.FC<RequestHelpModalProps> = ({ isOpen, onCl
               </div>
             </div>
 
-            {/* 2. Select Location & Specific Locality */}
-            <div className="p-3.5 rounded-xl bg-slate-800/80 border border-slate-700 space-y-2.5">
+            {/* 2. Select Location (Choose on Map or Type Manually) */}
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <label className="block text-xs font-bold text-slate-200 uppercase flex items-center gap-1.5">
                   <MapPin className="w-4 h-4 text-red-400" />
-                  <span>2. {language === 'ta' ? 'உதவி தேவைப்படும் இடம்' : 'Rescue / Assistance Location'}</span>
+                  <span>2. {language === 'ta' ? 'உதவி தேவைப்படும் இடம் / வரைபடத்தில் தேர்வு' : 'Rescue / Assistance Location'}</span>
                 </label>
-
-                <button
-                  type="button"
-                  onClick={handleUseCurrentGps}
-                  className="text-[11px] font-semibold text-red-300 hover:text-white flex items-center gap-1 bg-slate-900/80 px-2 py-1 rounded-lg border border-red-500/30 active:scale-95 transition-all"
-                >
-                  <Navigation className="w-3 h-3 text-red-400" />
-                  <span>{language === 'ta' ? 'என் GPS இருப்பிடம்' : 'Use Current GPS'}</span>
-                </button>
-              </div>
-
-              {/* Area Select Dropdown */}
-              <div>
-                <select
-                  value={CHENNAI_AREAS.some(a => a.name === selectedArea) ? selectedArea : 'CUSTOM'}
-                  onChange={(e) => handleAreaChange(e.target.value)}
-                  className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-xs text-white focus:border-red-500 outline-none transition-colors"
-                >
-                  {CHENNAI_AREAS.map((a) => (
-                    <option key={a.name} value={a.name}>
-                      📍 {a.name} ({a.nameTa}) — {a.zone}
-                    </option>
-                  ))}
-                  <option value="CUSTOM">✏️ {language === 'ta' ? 'வேறு பகுதி (கீழே குறிப்பிடவும்)' : 'Other Locality / Street'}</option>
-                </select>
-              </div>
-
-              {/* Specific Street Address / Landmark */}
-              <div>
-                <input
-                  type="text"
-                  value={landmark}
-                  onChange={(e) => setLandmark(e.target.value)}
-                  placeholder={language === 'ta' ? 'தெரு, கதவு எண், மைல்கல் (எ.கா: 3வது குறுக்குத் தெரு, தண்ணீர் தேக்கம் அருகில்)' : 'Door No, street, landmark (e.g. 3rd Cross St, near temple)'}
-                  className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-xs text-white focus:border-red-500 outline-none placeholder-slate-400"
-                />
-              </div>
-
-              {/* Coordinate indicator badge */}
-              <div className="flex items-center justify-between text-[11px] text-slate-400 px-1 pt-0.5">
-                <span>
-                  Coordinates: <span className="text-slate-200 font-mono">{helpCoords.latitude.toFixed(4)}, {helpCoords.longitude.toFixed(4)}</span>
+                <span className="text-[11px] text-red-400 font-medium">
+                  {language === 'ta' ? 'வரைபடத்தில் குத்தவும் அல்லது தட்டச்சு செய்க' : 'Pick on map or type address'}
                 </span>
-                {usingGps ? (
-                  <span className="text-emerald-400 font-bold flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> GPS Active
-                  </span>
-                ) : (
-                  <span className="text-slate-400 text-[10px]">
-                    📍 Centered on {selectedArea}
-                  </span>
-                )}
               </div>
+
+              <LocationPicker
+                value={{
+                  latitude: helpCoords.latitude,
+                  longitude: helpCoords.longitude,
+                  area: selectedArea,
+                  landmark: landmark,
+                  source: usingGps ? 'gps' : 'manual'
+                }}
+                onChange={(loc) => {
+                  setHelpCoords({ latitude: loc.latitude, longitude: loc.longitude });
+                  setSelectedArea(loc.area);
+                  setLandmark(loc.landmark || '');
+                  setUsingGps(loc.source === 'gps');
+                }}
+                language={language as 'ta' | 'en'}
+              />
             </div>
 
             {/* 3. Priority Level */}

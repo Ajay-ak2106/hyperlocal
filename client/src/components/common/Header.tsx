@@ -11,18 +11,39 @@ import {
   Shield,
   LifeBuoy,
   X,
-  ChevronDown
+  ChevronDown,
+  Loader2,
+  AlertCircle,
+  Crosshair,
+  Search,
+  Navigation
 } from 'lucide-react';
 import { offlineManager } from '../../services/offline.js';
 import { CHENNAI_AREAS } from '../../constants/areas.js';
 
 export const Header: React.FC = () => {
-  const { role, language, currentArea, gpsActive, switchDemoRole, toggleLanguage, setCurrentArea, requestGps } = useAuth();
+  const {
+    role,
+    language,
+    currentArea,
+    coords,
+    gpsActive,
+    gpsStatus,
+    gpsError,
+    gpsAccuracy,
+    switchDemoRole,
+    toggleLanguage,
+    setCurrentArea,
+    setCustomLocation,
+    requestGps
+  } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllRead } = useRealtime();
 
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [showAreaModal, setShowAreaModal] = useState(false);
   const [showNotifs, setShowNotifs] = useState(false);
+  const [areaFilterQuery, setAreaFilterQuery] = useState('');
+  const [customLocalityText, setCustomLocalityText] = useState('');
   const [offlineCount, setOfflineCount] = useState(offlineManager.getPendingCount());
 
   useEffect(() => {
@@ -61,17 +82,36 @@ export const Header: React.FC = () => {
                 </span>
               </div>
 
-              {/* Area Selector Button */}
+              {/* Location Status & Area Selector Button */}
               <button
                 onClick={() => setShowAreaModal(true)}
-                className="flex items-center gap-1 text-xs text-slate-300 hover:text-emerald-400 transition-colors mt-0.5"
-                title="Select Area"
+                className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white transition-colors mt-0.5 group"
+                title="View Location Status / Select Locality"
               >
-                <MapPin className={`w-3.5 h-3.5 ${gpsActive ? 'text-emerald-400' : 'text-sky-400'}`} />
-                <span className="font-semibold underline decoration-dotted decoration-slate-500">
-                  {currentArea}
-                </span>
-                <ChevronDown className="w-3 h-3 text-slate-400" />
+                {gpsStatus === 'locating' ? (
+                  <span className="flex items-center gap-1 text-emerald-400 font-semibold animate-pulse">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>{language === 'ta' ? 'GPS கண்டறிகிறது...' : 'Locating...'}</span>
+                  </span>
+                ) : (
+                  <>
+                    <span className="relative flex items-center justify-center">
+                      <MapPin className={`w-3.5 h-3.5 ${gpsActive ? 'text-emerald-400' : 'text-sky-400'}`} />
+                      {gpsActive && (
+                        <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                      )}
+                    </span>
+                    <span className="font-semibold underline decoration-dotted decoration-slate-500 group-hover:text-emerald-400">
+                      {currentArea}
+                    </span>
+                    {gpsActive && (
+                      <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-500/40">
+                        GPS
+                      </span>
+                    )}
+                    <ChevronDown className="w-3 h-3 text-slate-400 group-hover:text-slate-200" />
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -215,59 +255,179 @@ export const Header: React.FC = () => {
         </div>
       </header>
 
-      {/* Area Selection Modal */}
+      {/* Area & Location Management Modal */}
       {showAreaModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-700 p-5 shadow-2xl">
-            <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="w-full max-w-md rounded-2xl bg-slate-900 border border-slate-700 p-5 shadow-2xl my-auto">
+            <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-800">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-emerald-400" />
-                {language === 'ta' ? 'பகுதியை தேர்வு செய்க' : 'Select Your Area'}
+                <span>{language === 'ta' ? 'இருப்பிட நிலை & பகுதி தேர்வு' : 'Location Status & Area Selection'}</span>
               </h3>
               <button
                 onClick={() => setShowAreaModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white"
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-300 mb-4 leading-relaxed">
-              {language === 'ta'
-                ? 'உங்கள் பகுதியை தேர்வு செய்தால் அப்பகுதிக்கான முகாம்கள் மற்றும் தகவல்கள் காட்டப்படும்.'
-                : 'Select your Chennai locality to see nearby shelters and emergency alerts:'}
-            </p>
+            {/* 1. Live Device GPS Status Card */}
+            <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-700/80 mb-4 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Navigation className="w-3.5 h-3.5 text-sky-400" />
+                  <span>{language === 'ta' ? 'சாதன GPS நிலை' : 'Device GPS Status'}</span>
+                </span>
 
-            <div className="grid grid-cols-2 gap-2 mb-4 max-h-60 overflow-y-auto pr-1">
-              {CHENNAI_AREAS.map((a) => (
-                <button
-                  key={a.name}
-                  onClick={() => {
-                    setCurrentArea(a.name);
-                    setShowAreaModal(false);
-                  }}
-                  className={`p-2.5 rounded-xl border text-xs font-semibold transition-all text-left ${
-                    currentArea === a.name
-                      ? 'bg-emerald-600/20 border-emerald-500 text-emerald-300 font-bold'
-                      : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700'
-                  }`}
-                >
-                  <div className="font-bold text-white">📍 {a.name}</div>
-                  <div className="text-[10px] text-slate-400">{a.nameTa} • {a.zone}</div>
-                </button>
-              ))}
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 border ${
+                  gpsActive
+                    ? 'bg-emerald-950 text-emerald-300 border-emerald-500/40'
+                    : gpsStatus === 'locating'
+                    ? 'bg-sky-950 text-sky-300 border-sky-500/40'
+                    : gpsStatus === 'denied'
+                    ? 'bg-amber-950 text-amber-300 border-amber-500/40'
+                    : 'bg-slate-800 text-slate-300 border-slate-700'
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${
+                    gpsActive ? 'bg-emerald-400 animate-pulse' : gpsStatus === 'locating' ? 'bg-sky-400 animate-spin' : 'bg-slate-400'
+                  }`}></span>
+                  <span>
+                    {gpsActive
+                      ? (language === 'ta' ? 'நேரலை GPS இயக்கத்தில்' : 'GPS Active & Synced')
+                      : gpsStatus === 'locating'
+                      ? (language === 'ta' ? 'இணைக்கிறது...' : 'Locating...')
+                      : gpsStatus === 'denied'
+                      ? (language === 'ta' ? 'அனுமதி மறுக்கப்பட்டது' : 'Permission Blocked')
+                      : (language === 'ta' ? 'கைமுறை பகுதி' : 'Manual Mode')}
+                  </span>
+                </span>
+              </div>
+
+              {/* Coordinates and accuracy readout */}
+              <div className="p-2 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between text-xs">
+                <div>
+                  <div className="font-bold text-white text-[11px]">
+                    📍 {currentArea}
+                  </div>
+                  <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+                    {Number(coords.latitude).toFixed(5)}° N, {Number(coords.longitude).toFixed(5)}° E
+                  </div>
+                </div>
+                {gpsAccuracy && gpsActive && (
+                  <span className="text-[10px] text-emerald-400 font-medium">
+                    ±{gpsAccuracy}m precision
+                  </span>
+                )}
+              </div>
+
+              {gpsError && (
+                <div className="p-2 rounded-lg bg-red-950/50 border border-red-800/40 text-red-300 text-[11px] flex items-center gap-1.5">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 text-red-400" />
+                  <span>{gpsError}</span>
+                </div>
+              )}
+
+              {/* One tap GPS button with spinner */}
+              <button
+                type="button"
+                onClick={async () => {
+                  await requestGps();
+                  setShowAreaModal(false);
+                }}
+                disabled={gpsStatus === 'locating'}
+                className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all"
+              >
+                {gpsStatus === 'locating' ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                    <span>{language === 'ta' ? 'GPS இருப்பிடத்தை தேடுகிறது...' : 'Acquiring GPS Signal...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Crosshair className="w-4 h-4 text-white" />
+                    <span>{language === 'ta' ? 'என் நேரலை GPS-ஐ பயன்படுத்து' : 'Use Current Device GPS'}</span>
+                  </>
+                )}
+              </button>
             </div>
 
-            <button
-              onClick={() => {
-                requestGps();
-                setShowAreaModal(false);
-              }}
-              className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-emerald-400 flex items-center justify-center gap-2"
-            >
-              <MapPin className="w-4 h-4 text-emerald-400" />
-              {language === 'ta' ? 'தற்போதைய GPS இருப்பிடத்தைப் பயன்படுத்து' : 'Use Current Device Location'}
-            </button>
+            {/* 2. Locality Quick Search / Select */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                  {language === 'ta' ? 'அல்லது சென்னைப் பகுதியை தேர்வு செய்க' : 'Or Select Locality Manually'}
+                </span>
+                <span className="text-[10px] text-slate-400">
+                  {CHENNAI_AREAS.length} zones
+                </span>
+              </div>
+
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  value={areaFilterQuery}
+                  onChange={(e) => setAreaFilterQuery(e.target.value)}
+                  placeholder={language === 'ta' ? 'பகுதியை தேடுக...' : 'Filter Chennai areas...'}
+                  className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-400 focus:border-emerald-500 outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 max-h-52 overflow-y-auto pr-1">
+                {CHENNAI_AREAS.filter(
+                  (a) =>
+                    a.name.toLowerCase().includes(areaFilterQuery.toLowerCase()) ||
+                    a.nameTa.includes(areaFilterQuery) ||
+                    a.zone.toLowerCase().includes(areaFilterQuery.toLowerCase())
+                ).map((a) => (
+                  <button
+                    key={a.name}
+                    onClick={() => {
+                      setCurrentArea(a.name);
+                      setShowAreaModal(false);
+                    }}
+                    className={`p-2 rounded-xl border text-xs font-semibold transition-all text-left ${
+                      currentArea === a.name && !gpsActive
+                        ? 'bg-emerald-600/20 border-emerald-500 text-emerald-300 font-bold'
+                        : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700'
+                    }`}
+                  >
+                    <div className="font-bold text-white line-clamp-1">📍 {a.name}</div>
+                    <div className="text-[10px] text-slate-400 line-clamp-1">{a.nameTa} • {a.zone}</div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Custom Locality Option */}
+              <div className="pt-2 border-t border-slate-800">
+                <span className="text-[10px] text-slate-400 block mb-1">
+                  {language === 'ta' ? 'வேறு பகுதி அல்லது தெரு பெயர்:' : 'Other area or specific street:'}
+                </span>
+                <div className="flex gap-1.5">
+                  <input
+                    type="text"
+                    value={customLocalityText}
+                    onChange={(e) => setCustomLocalityText(e.target.value)}
+                    placeholder={language === 'ta' ? 'எ.கா: கிழக்கு தாம்பரம், மேடவாக்கம்...' : 'e.g. East Tambaram, Porur...'}
+                    className="flex-1 px-2.5 py-1.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:border-emerald-500 outline-none"
+                  />
+                  <button
+                    type="button"
+                    disabled={!customLocalityText.trim()}
+                    onClick={() => {
+                      if (customLocalityText.trim()) {
+                        setCurrentArea(customLocalityText.trim());
+                        setShowAreaModal(false);
+                      }
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 text-xs font-bold transition-all disabled:opacity-40"
+                  >
+                    {language === 'ta' ? 'அமைக்க' : 'Set'}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
