@@ -148,7 +148,22 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setLastRealtimeEvent(`POST_${payload.id}_${Date.now()}`);
     });
 
+    // Also listen to local in-browser disaster sync events (offline resilience)
+    const handleLocalEvent = (e: any) => {
+      const { event, data } = e.detail || {};
+      setLastRealtimeEvent(`${event}_${Date.now()}`);
+      if (event === 'INCIDENT_CREATED') {
+        addToast(`🚨 Incident Logged: ${data.type || 'Emergency'}`, `${data.area || 'Local'}: ${data.description || 'Emergency reported'}`, 'emergency');
+      } else if (event === 'ASSISTANCE_REQUEST_CREATED') {
+        addToast(`🆘 Emergency Request: ${data.category}`, `${data.citizen_name || 'Resident'} in ${data.area || 'Local'}`, 'emergency');
+      } else if (event === 'SAFETY_CHECKIN_SUBMITTED') {
+        addToast(`✅ Safety Check-In`, `${data.checkin?.user_name || 'Resident'} marked: ${data.checkin?.status}`, 'safety');
+      }
+    };
+    window.addEventListener('namma-realtime', handleLocalEvent);
+
     return () => {
+      window.removeEventListener('namma-realtime', handleLocalEvent);
       unsubInc();
       unsubIncUp();
       unsubReq();

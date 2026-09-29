@@ -1,19 +1,26 @@
 import initSqlJs, { Database } from 'sql.js';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const DATA_DIR = path.join(__dirname, '../data');
+// On Vercel serverless, standard filesystem is read-only; use os.tmpdir()
+const isVercel = Boolean(process.env.VERCEL);
+const DATA_DIR = isVercel ? path.join(os.tmpdir(), 'namma_rescue_data') : path.join(__dirname, '../data');
 const DB_PATH = path.join(DATA_DIR, 'namma_rescue.sqlite');
 
 let dbInstance: Database | null = null;
 
-// Ensure data directory exists
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+// Ensure data directory exists safely
+try {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+} catch (e) {
+  console.warn('Notice: Running in read-only environment, using in-memory database:', e);
 }
 
 // Persist the database in-memory state to disk
@@ -24,7 +31,7 @@ export function persistDatabase(): void {
     const buffer = Buffer.from(data);
     fs.writeFileSync(DB_PATH, buffer);
   } catch (err) {
-    console.error('Failed to persist database to disk:', err);
+    console.warn('Notice: Could not persist database to disk (operating in-memory):', err);
   }
 }
 

@@ -41,6 +41,17 @@ app.use(cors({
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
+// Ensure database is initialized before handling requests
+app.use(async (req, res, next) => {
+  try {
+    await getDatabase();
+    next();
+  } catch (err: any) {
+    console.error('Database connection error in request:', err);
+    res.status(500).json({ success: false, error: 'Database initialization failed: ' + err.message });
+  }
+});
+
 // Static uploads directory
 const UPLOADS_DIR = path.join(__dirname, '../uploads');
 app.use('/uploads', express.static(UPLOADS_DIR));
@@ -70,13 +81,20 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Setup Realtime WebSocket Server
-setupRealtimeServer(server);
+// Setup Realtime WebSocket Server (when running standalone)
+if (!process.env.VERCEL) {
+  try {
+    setupRealtimeServer(server);
+  } catch (err) {
+    console.warn('Realtime server setup skipped:', err);
+  }
+}
 
-// Start server after database initialization
-getDatabase().then(() => {
-  server.listen(PORT, () => {
-    console.log(`
+// Start server when run directly (local development or container)
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
+  getDatabase().then(() => {
+    server.listen(PORT, () => {
+      console.log(`
 ===========================================================
   🆘 NammaRescue Backend & Realtime Engine Running
 ===========================================================
@@ -85,9 +103,13 @@ getDatabase().then(() => {
   Health Status: http://localhost:${PORT}/api/health
   Uploads:       http://localhost:${PORT}/uploads/
 ===========================================================
-    `);
+      `);
+    });
+  }).catch(err => {
+    console.error('Fatal: Failed to initialize database:', err);
+    process.exit(1);
   });
-}).catch(err => {
-  console.error('Fatal: Failed to initialize database:', err);
-  process.exit(1);
-});
+}
+
+export default app;
+export { app, server };

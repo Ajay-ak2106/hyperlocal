@@ -1,15 +1,21 @@
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const UPLOAD_DIR = path.join(__dirname, '../uploads');
+const isVercel = Boolean(process.env.VERCEL);
+const UPLOAD_DIR = isVercel ? path.join(os.tmpdir(), 'namma_rescue_uploads') : path.join(__dirname, '../uploads');
 
-if (!fs.existsSync(UPLOAD_DIR)) {
-  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+try {
+  if (!fs.existsSync(UPLOAD_DIR)) {
+    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+  }
+} catch (e) {
+  console.warn('Notice: Could not create upload directory, fallback to memory storage:', e);
 }
 
 const storage = multer.diskStorage({
