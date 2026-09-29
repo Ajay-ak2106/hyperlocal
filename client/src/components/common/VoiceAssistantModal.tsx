@@ -47,11 +47,16 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
       },
       (err: any) => {
         setIsListening(false);
-        console.warn('Speech recognition error:', err);
+        console.warn('Speech recognition note:', err);
+        const isNetErr = err?.error === 'network';
         setErrorMessage(
-          language === 'ta'
-            ? 'குரலைக் கேட்க முடியவில்லை. தயவுசெய்து மீண்டும் பேசவும் அல்லது கீழே உள்ள பொத்தான்களைப் பயன்படுத்தவும்.'
-            : 'Could not capture voice. Please try again or tap the emergency buttons.'
+          isNetErr
+            ? (language === 'ta'
+                ? 'இணைய இணைப்பு குறைவு. கீழே உள்ள உடனடி பொத்தான்களைப் பயன்படுத்தி பதிவு செய்யலாம்.'
+                : 'Voice service requires internet. You can use the one-tap emergency buttons below.')
+            : (language === 'ta'
+                ? 'குரலைக் கேட்க முடியவில்லை. தயவுசெய்து மீண்டும் பேசவும் அல்லது கீழே உள்ள பொத்தான்களைப் பயன்படுத்தவும்.'
+                : 'Could not capture voice. Please try again or tap the emergency buttons.')
         );
       }
     );

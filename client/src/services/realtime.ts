@@ -11,6 +11,14 @@ class RealtimeClient {
   }
 
   private connect() {
+    if (typeof window === 'undefined') return;
+
+    // Vercel serverless and static hosts do not support persistent WebSockets
+    if (window.location.hostname.endsWith('vercel.app')) {
+      console.info('📡 [NammaRescue] Running on cloud serverless — using browser event bus for instant sync.');
+      return;
+    }
+
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.hostname === 'localhost' ? 'localhost:5000' : window.location.host;
     const wsUrl = `${protocol}//${host}/ws`;
