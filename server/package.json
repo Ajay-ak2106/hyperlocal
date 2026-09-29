@@ -1,6 +1,7 @@
 {
   "name": "namma-rescue-server",
   "version": "1.0.0",
+  "type": "module",
   "description": "Backend API & Realtime Service for NammaRescue Hyperlocal Disaster Management",
   "main": "dist/index.js",
   "scripts": {
