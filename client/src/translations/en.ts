@@ -66,6 +66,6 @@ export const en = {
   stopRecording: 'Stop Recording',
   descriptionPlaceholder: 'Short description (or speak in voice)...',
   callNow: 'CALL NOW',
-  demoDataBadge: 'DEMO DATA',
+  demoDataBadge: 'GCC OPEN DATASET',
   aiEstimateBadge: 'AI ESTIMATE',
 };

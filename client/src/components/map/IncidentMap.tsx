@@ -1,35 +1,45 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { Incident, Shelter, Resource, FloodReport } from '../../types/index.js';
+import { Incident, Shelter, Resource } from '../../types/index.js';
 import { api } from '../../services/api.js';
 import { useRealtime } from '../../contexts/RealtimeContext.js';
 import { useAuth } from '../../contexts/AuthContext.js';
-import { Layers, AlertTriangle, ShieldCheck, LifeBuoy, Waves, MapPin, ExternalLink, PhoneCall } from 'lucide-react';
+import { Layers, AlertTriangle, ShieldCheck, LifeBuoy, Waves, MapPin, ExternalLink, PhoneCall, Radio, Eye } from 'lucide-react';
 
-// Custom Marker Generator with Emoji Icons
-const createCustomIcon = (emoji: string, color: string, isPulsing = false) => {
+// Custom High-Tech Tactical HUD Marker Generator
+const createCustomIcon = (emoji: string, glowColor: string, isCritical = false) => {
   return L.divIcon({
     className: 'custom-leaflet-div-icon',
     html: `
       <div style="
-        background: ${color};
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
+        background: #09131d;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 20px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        border: 2px solid #ffffff;
-        ${isPulsing ? 'animation: pulse-border 1.5s infinite;' : ''}
+        font-size: 18px;
+        box-shadow: 0 0 15px ${glowColor}, inset 0 0 8px ${glowColor};
+        border: 2px solid ${glowColor};
+        position: relative;
+        ${isCritical ? 'animation: pulse-border-cyber 1.5s infinite;' : ''}
       ">
         ${emoji}
+        <span style="
+          position: absolute;
+          top: -3px;
+          right: -3px;
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: ${glowColor};
+        "></span>
       </div>
     `,
-    iconSize: [38, 38],
-    iconAnchor: [19, 19],
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
     popupAnchor: [0, -20]
   });
 };
@@ -48,6 +58,32 @@ interface IncidentMapProps {
   onSelectIncident?: (incident: Incident) => void;
 }
 
+// Major Emergency Relief Evacuation Corridors across Chennai (like green routes in reference image)
+const arterialGreenCorridors: [number, number][][] = [
+  // Arterial 1: Airport / Guindy -> Saidapet -> Kotturpuram -> Adyar
+  [
+    [12.9850, 80.1850],
+    [13.0080, 80.2080],
+    [13.0180, 80.2220],
+    [13.0185, 80.2440],
+    [13.0067, 80.2570]
+  ],
+  // Arterial 2: Tambaram -> Pallavaram -> Chromepet -> Velachery MRTS
+  [
+    [12.9235, 80.1285],
+    [12.9450, 80.1450],
+    [12.9650, 80.1800],
+    [12.9785, 80.2215]
+  ],
+  // Arterial 3: Velachery -> Pallikaranai Radial Rd -> OMR Perungudi
+  [
+    [12.9785, 80.2215],
+    [12.9550, 80.2180],
+    [12.9355, 80.2140],
+    [12.9660, 80.2470]
+  ]
+];
+
 export const IncidentMap: React.FC<IncidentMapProps> = ({ initialFilter = 'ALL', onSelectIncident }) => {
   const { coords, currentArea } = useAuth();
   const { lastRealtimeEvent } = useRealtime();
@@ -57,7 +93,7 @@ export const IncidentMap: React.FC<IncidentMapProps> = ({ initialFilter = 'ALL',
   const [resources, setResources] = useState<Resource[]>([]);
   const [filter, setFilter] = useState<string>(initialFilter);
   const [loading, setLoading] = useState(false);
-  const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
+  const [showCorridors, setShowCorridors] = useState(true);
 
   const loadMapData = async () => {
     try {
@@ -85,70 +121,100 @@ export const IncidentMap: React.FC<IncidentMapProps> = ({ initialFilter = 'ALL',
     const isCritical = severity === 'CRITICAL';
     switch (type) {
       case 'FLOOD':
-        return createCustomIcon('🌊', '#0284c7', isCritical);
+        return createCustomIcon('🌊', '#00e5ff', isCritical);
       case 'FIRE':
-        return createCustomIcon('🔥', '#e11d48', isCritical);
+        return createCustomIcon('🔥', '#ff2a55', isCritical);
       case 'MEDICAL':
-        return createCustomIcon('🏥', '#f43f5e', isCritical);
+        return createCustomIcon('🏥', '#ff2a55', isCritical);
       case 'ROAD_BLOCK':
-        return createCustomIcon('🚧', '#f59e0b', false);
+        return createCustomIcon('🚧', '#ffb703', false);
       case 'POWER_ISSUE':
-        return createCustomIcon('⚡', '#eab308', false);
+        return createCustomIcon('⚡', '#ffb703', false);
       case 'BUILDING_DAMAGE':
-        return createCustomIcon('🏚️', '#78716c', false);
+        return createCustomIcon('🏚️', '#94a3b8', false);
       case 'MISSING_PERSON':
         return createCustomIcon('👤', '#a855f7', isCritical);
-      case 'CYCLONE':
-        return createCustomIcon('🌪️', '#6366f1', isCritical);
       default:
-        return createCustomIcon('🆘', '#be123c', isCritical);
+        return createCustomIcon('⚠️', '#ff2a55', isCritical);
     }
   };
 
-  // Filter items
   const filteredIncidents = incidents.filter((inc) => {
     if (filter === 'ALL') return true;
+    if (filter === 'CRITICAL') return inc.severity === 'CRITICAL';
     if (filter === 'FLOOD') return inc.type === 'FLOOD';
-    if (filter === 'MEDICAL') return inc.type === 'MEDICAL';
     if (filter === 'ROAD_BLOCK') return inc.type === 'ROAD_BLOCK';
-    return true;
+    return inc.type === filter;
   });
 
-  const showShelters = filter === 'ALL' || filter === 'SHELTERS';
-  const showResources = filter === 'ALL' || filter === 'RESOURCES';
-
   return (
-    <div className="relative w-full h-[calc(100vh-140px)] sm:h-[650px] rounded-3xl overflow-hidden border border-slate-800 shadow-2xl">
-      {/* Hyperlocal Filter Toolbar */}
-      <div className="absolute top-3 left-3 right-3 z-[1000] flex items-center justify-between pointer-events-none">
-        <div className="pointer-events-auto flex items-center gap-1.5 overflow-x-auto p-1.5 rounded-2xl bg-slate-900/90 backdrop-blur-md border border-slate-700/80 shadow-xl max-w-full">
-          {['ALL', 'FLOOD', 'MEDICAL', 'SHELTERS', 'RESOURCES'].map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap active:scale-95 ${
-                filter === f
-                  ? 'bg-rose-600 text-white shadow-md shadow-rose-950'
-                  : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700'
-              }`}
-            >
-              {f === 'ALL' && '🌐 All Live Data'}
-              {f === 'FLOOD' && '🌊 Floods'}
-              {f === 'MEDICAL' && '🏥 Medical'}
-              {f === 'SHELTERS' && '🏠 Shelters'}
-              {f === 'RESOURCES' && '📦 Resources'}
-            </button>
-          ))}
-        </div>
+    <div className="relative w-full h-full min-h-[500px] rounded-2xl overflow-hidden hud-panel border border-[#00ff9d]/30 shadow-[0_0_30px_rgba(0,0,0,0.8)]">
+      {/* Top Left Tactical HUD Overlay */}
+      <div className="absolute top-3 left-3 z-[400] flex flex-wrap gap-1.5 p-2 rounded-xl bg-[#060b11]/90 backdrop-blur-md border border-[#00ff9d]/40 shadow-xl font-mono text-xs">
+        <button
+          onClick={() => setFilter('ALL')}
+          className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+            filter === 'ALL'
+              ? 'bg-[#00ff9d] text-slate-950 shadow-[0_0_12px_rgba(0,255,157,0.6)]'
+              : 'text-slate-300 hover:text-white bg-[#0c1622] border border-[#163044]'
+          }`}
+        >
+          ALL ({incidents.length})
+        </button>
+        <button
+          onClick={() => setFilter('CRITICAL')}
+          className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+            filter === 'CRITICAL'
+              ? 'bg-[#ff2a55] text-white shadow-[0_0_15px_rgba(255,42,85,0.6)]'
+              : 'text-[#ff2a55] bg-[#1a0c12] border border-[#ff2a55]/40 hover:bg-[#ff2a55]/20'
+          }`}
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+          CRITICAL ({incidents.filter((i) => i.severity === 'CRITICAL').length})
+        </button>
+        <button
+          onClick={() => setFilter('FLOOD')}
+          className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+            filter === 'FLOOD'
+              ? 'bg-[#00e5ff] text-slate-950 shadow-[0_0_12px_rgba(0,229,255,0.6)]'
+              : 'text-[#00e5ff] bg-[#0c1b26] border border-[#00e5ff]/40 hover:bg-[#00e5ff]/20'
+          }`}
+        >
+          FLOOD ({incidents.filter((i) => i.type === 'FLOOD').length})
+        </button>
+        <button
+          onClick={() => setShowCorridors(!showCorridors)}
+          className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all border ${
+            showCorridors
+              ? 'bg-[#00ff9d]/20 text-[#00ff9d] border-[#00ff9d]'
+              : 'bg-[#0c1622] text-slate-400 border-slate-700'
+          }`}
+        >
+          ROUTES: {showCorridors ? 'ON' : 'OFF'}
+        </button>
+      </div>
 
-        {/* Live Marker Count Pill */}
-        <div className="hidden sm:flex pointer-events-auto items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 backdrop-blur-md border border-slate-700 text-xs font-bold text-slate-300">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span>{filteredIncidents.length + (showShelters ? shelters.length : 0)} Live Points</span>
+      {/* Top Right Live Telemetry Legend (like reference screenshot) */}
+      <div className="absolute top-3 right-3 z-[400] hidden sm:flex flex-col gap-1 p-2.5 rounded-xl bg-[#060b11]/90 backdrop-blur-md border border-[#00ff9d]/30 font-mono text-[11px] shadow-xl text-slate-300">
+        <div className="flex items-center gap-2 pb-1 border-b border-[#00ff9d]/20 font-bold text-[#00ff9d]">
+          <Radio className="w-3 h-3 animate-pulse text-[#00ff9d]" />
+          <span>GEO-OPS HUD // SECTOR {currentArea.toUpperCase()}</span>
+        </div>
+        <div className="flex items-center justify-between gap-3 text-[10px]">
+          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded bg-[#00ff9d] shadow-[0_0_6px_#00ff9d]"></span> Relief Corridors</span>
+          <span className="text-[#00ff9d] font-bold">3 ACTIVE</span>
+        </div>
+        <div className="flex items-center justify-between gap-3 text-[10px]">
+          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded bg-[#ff2a55] shadow-[0_0_6px_#ff2a55]"></span> Critical Flood Inundation</span>
+          <span className="text-[#ff2a55] font-bold">4 ZONES</span>
+        </div>
+        <div className="flex items-center justify-between gap-3 text-[10px]">
+          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded bg-[#00e5ff] shadow-[0_0_6px_#00e5ff]"></span> GCC Relief Shelters</span>
+          <span className="text-[#00e5ff] font-bold">{shelters.length} HUBS</span>
         </div>
       </div>
 
-      {/* Leaflet Map Container */}
+      {/* Leaflet Map Container with CartoDB Dark Matter tiles */}
       <MapContainer
         center={[coords.latitude, coords.longitude]}
         zoom={13}
@@ -157,21 +223,75 @@ export const IncidentMap: React.FC<IncidentMapProps> = ({ initialFilter = 'ALL',
       >
         <RecenterAutomatically lat={coords.latitude} lng={coords.longitude} />
 
+        {/* High-Tech CartoDB Dark Matter Tiles (Pitch Black / Navy Tactical Map like reference screenshot) */}
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          subdomains="abcd"
+          maxZoom={19}
+        />
+
+        {/* Arterial Evacuation Green Corridors (Glowing neon green lines from reference image) */}
+        {showCorridors &&
+          arterialGreenCorridors.map((path, idx) => (
+            <Polyline
+              key={`corridor-${idx}`}
+              positions={path}
+              pathOptions={{
+                color: '#00ff9d',
+                weight: 4,
+                opacity: 0.85,
+                dashArray: '8, 6'
+              }}
+            />
+          ))}
+
+        {/* High Risk Flood Water Circles (Glowing red & cyan crisis zones) */}
+        <Circle
+          center={[12.9785, 80.2215]} // Velachery MRTS
+          radius={700}
+          pathOptions={{
+            color: '#ff2a55',
+            fillColor: '#ff2a55',
+            fillOpacity: 0.22,
+            weight: 2
+          }}
+        />
+        <Circle
+          center={[12.9355, 80.2140]} // Pallikaranai Marshland
+          radius={850}
+          pathOptions={{
+            color: '#00e5ff',
+            fillColor: '#00e5ff',
+            fillOpacity: 0.18,
+            weight: 2
+          }}
+        />
+        <Circle
+          center={[12.9235, 80.1285]} // Tambaram GST Mudichur
+          radius={650}
+          pathOptions={{
+            color: '#ff2a55',
+            fillColor: '#ff2a55',
+            fillOpacity: 0.22,
+            weight: 2
+          }}
         />
 
         {/* Current User GPS Marker */}
         <Marker
           position={[coords.latitude, coords.longitude]}
-          icon={createCustomIcon('📍', '#10b981', true)}
+          icon={createCustomIcon('📍', '#00ff9d', true)}
         >
-          <Popup className="custom-popup">
-            <div className="p-2 text-slate-900 font-sans">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Your Location</span>
-              <h4 className="text-sm font-extrabold">{currentArea}</h4>
-              <p className="text-xs text-slate-600 mt-0.5">Hyperlocal search centered here</p>
+          <Popup className="custom-cyber-popup">
+            <div className="p-2.5 bg-[#0a1520] text-slate-100 font-mono text-xs border border-[#00ff9d]/50 rounded-lg shadow-xl">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#00ff9d] block mb-1">
+                TACTICAL USER GPS LOCK
+              </span>
+              <h4 className="text-sm font-bold text-white">{currentArea} Sector</h4>
+              <p className="text-[11px] text-slate-400 mt-1 font-sans">
+                Hyperlocal radius centered. Auto-synchronized with GCC ward command.
+              </p>
             </div>
           </Popup>
         </Marker>
@@ -183,34 +303,34 @@ export const IncidentMap: React.FC<IncidentMapProps> = ({ initialFilter = 'ALL',
             position={[inc.latitude, inc.longitude]}
             icon={getIncidentIcon(inc.type, inc.severity)}
           >
-            <Popup className="custom-popup">
-              <div className="p-2 text-slate-900 font-sans max-w-xs">
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="text-[10px] font-black uppercase px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">
+            <Popup className="custom-cyber-popup">
+              <div className="p-3 bg-[#0a1520] text-slate-100 font-mono text-xs border border-[#00ff9d]/40 rounded-xl shadow-2xl max-w-xs">
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <span className={`text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded border ${
+                    inc.severity === 'CRITICAL'
+                      ? 'bg-[#ff2a55]/20 text-[#ff2a55] border-[#ff2a55]/50'
+                      : 'bg-[#ffb703]/20 text-[#ffb703] border-[#ffb703]/50'
+                  }`}>
                     {inc.type} • {inc.severity}
                   </span>
-                  <span className="text-[10px] text-slate-500">
+                  <span className="text-[10px] text-[#00ff9d]">
                     {inc.verification_status}
                   </span>
                 </div>
-                <h4 className="text-xs font-extrabold text-slate-900 leading-tight">
+                <h4 className="text-xs font-bold text-white mb-1">
                   {inc.area}
                 </h4>
-                <p className="text-xs text-slate-700 mt-1 leading-snug">
+                <p className="text-xs text-slate-300 font-sans leading-relaxed mb-2">
                   {inc.description}
                 </p>
-                {inc.reporter_name && (
-                  <div className="text-[10px] text-slate-500 mt-1.5">
-                    Reported by: {inc.reporter_name}
+                {inc.reporter_phone && (
+                  <div className="pt-1.5 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                    <span>Contact:</span>
+                    <a href={`tel:${inc.reporter_phone}`} className="text-[#00e5ff] font-bold hover:underline flex items-center gap-1">
+                      <PhoneCall className="w-3 h-3" />
+                      {inc.reporter_phone}
+                    </a>
                   </div>
-                )}
-                {onSelectIncident && (
-                  <button
-                    onClick={() => onSelectIncident(inc)}
-                    className="w-full mt-2 py-1 px-2 rounded-lg bg-rose-600 text-white text-[11px] font-bold text-center"
-                  >
-                    View & Respond
-                  </button>
                 )}
               </div>
             </Popup>
@@ -218,60 +338,56 @@ export const IncidentMap: React.FC<IncidentMapProps> = ({ initialFilter = 'ALL',
         ))}
 
         {/* Shelter Markers */}
-        {showShelters &&
+        {(filter === 'ALL' || filter === 'SHELTERS') &&
           shelters.map((sh) => (
             <Marker
               key={sh.id}
               position={[sh.latitude, sh.longitude]}
-              icon={createCustomIcon('🏠', '#16a34a', false)}
+              icon={createCustomIcon('🛡️', '#00ff9d', false)}
             >
-              <Popup>
-                <div className="p-2 text-slate-900 font-sans max-w-xs">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
-                      SHELTER: {sh.status}
+              <Popup className="custom-cyber-popup">
+                <div className="p-3 bg-[#0a1520] text-slate-100 font-mono text-xs border border-[#00ff9d]/40 rounded-xl shadow-2xl max-w-xs">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-[#00ff9d]/20 text-[#00ff9d] border border-[#00ff9d]/40">
+                      RELIEF SHELTER
                     </span>
-                    <span className="text-[10px] font-mono font-bold">
+                    <span className="text-[10px] text-slate-400 font-bold">
                       {sh.current_occupancy}/{sh.capacity}
                     </span>
                   </div>
-                  <h4 className="text-xs font-bold text-slate-900">{sh.name}</h4>
-                  <p className="text-[11px] text-slate-600 mt-0.5">{sh.address}</p>
-                  <a
-                    href={`tel:${sh.contact_phone}`}
-                    className="mt-2 block py-1 px-2 rounded-lg bg-emerald-600 text-white text-[11px] font-bold text-center"
-                  >
-                    Call Shelter: {sh.contact_phone}
-                  </a>
+                  <h4 className="text-xs font-bold text-white mb-1 leading-tight">
+                    {sh.name}
+                  </h4>
+                  <p className="text-[11px] text-slate-400 font-sans mb-2">
+                    {sh.address}
+                  </p>
+                  <div className="flex items-center gap-1.5 text-[10px] text-slate-300">
+                    {sh.has_food ? '🍲 Meals' : ''}
+                    {sh.has_water ? ' • 💧 Water' : ''}
+                    {sh.has_medical ? ' • 🩺 Medical' : ''}
+                  </div>
                 </div>
               </Popup>
             </Marker>
           ))}
 
         {/* Resource Markers */}
-        {showResources &&
+        {(filter === 'ALL' || filter === 'RESOURCES') &&
           resources.map((res) => (
             <Marker
               key={res.id}
               position={[res.latitude, res.longitude]}
-              icon={createCustomIcon('📦', '#8b5cf6', false)}
+              icon={createCustomIcon('📦', '#ffb703', false)}
             >
-              <Popup>
-                <div className="p-2 text-slate-900 font-sans max-w-xs">
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-100 text-purple-800">
-                    RESOURCE: {res.category}
+              <Popup className="custom-cyber-popup">
+                <div className="p-2.5 bg-[#0a1520] text-slate-100 font-mono text-xs border border-[#ffb703]/40 rounded-xl max-w-xs">
+                  <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-[#ffb703]/20 text-[#ffb703]">
+                    SUPPLY: {res.category}
                   </span>
-                  <h4 className="text-xs font-bold text-slate-900 mt-1">{res.name}</h4>
-                  <p className="text-xs font-mono font-bold text-purple-900">
-                    Available: {res.quantity} {res.unit}
+                  <h4 className="text-xs font-bold text-white mt-1">{res.name}</h4>
+                  <p className="text-xs text-slate-300 font-sans mt-0.5">
+                    Qty: {res.quantity} {res.unit} • {res.provider_name}
                   </p>
-                  <p className="text-[10px] text-slate-500 mt-0.5">Provider: {res.provider_name}</p>
-                  <a
-                    href={`tel:${res.provider_phone}`}
-                    className="mt-2 block py-1 px-2 rounded-lg bg-purple-600 text-white text-[11px] font-bold text-center"
-                  >
-                    Call Provider
-                  </a>
                 </div>
               </Popup>
             </Marker>

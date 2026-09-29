@@ -34,17 +34,22 @@ export const AlertBanner: React.FC = () => {
   const desc = language === 'ta' && currentAlert.description_ta ? currentAlert.description_ta : currentAlert.description;
 
   return (
-    <div className="bg-gradient-to-r from-rose-900/90 via-red-900/90 to-rose-950/90 border-b border-rose-600/50 px-3 py-2 sm:px-6 relative shadow-lg">
+    <div className="bg-gradient-to-r from-[#1a050b] via-cyber-panel to-cyber-bg border-b border-cyber-red/50 px-3 py-2 sm:px-6 relative shadow-[0_4px_20px_rgba(255,42,85,0.2)]">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-full bg-rose-600 text-white flex items-center justify-center flex-shrink-0 animate-pulse">
-            <AlertCircle className="w-5 h-5" />
+          <div className="w-7 h-7 rounded-sm bg-cyber-red/20 border border-cyber-red text-cyber-red flex items-center justify-center flex-shrink-0 animate-pulse shadow-[0_0_10px_rgba(255,42,85,0.5)]">
+            <AlertCircle className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <h4 className="text-xs sm:text-sm font-black text-white tracking-tight truncate">
-              {title}
-            </h4>
-            <p className="text-[11px] text-rose-200/90 truncate hidden sm:block">
+            <div className="flex items-center gap-2">
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-cyber-red/30 text-cyber-red border border-cyber-red/50 uppercase tracking-wider">
+                {currentAlert.severity} // TNDMA
+              </span>
+              <h4 className="text-xs sm:text-sm font-mono font-bold text-white tracking-tight truncate">
+                {title}
+              </h4>
+            </div>
+            <p className="text-[11px] text-slate-300/80 font-sans truncate hidden sm:block">
               {desc}
             </p>
           </div>
@@ -52,7 +57,7 @@ export const AlertBanner: React.FC = () => {
 
         <button
           onClick={() => setDismissed(true)}
-          className="text-rose-300 hover:text-white p-1 rounded-lg"
+          className="text-slate-400 hover:text-cyber-red p-1 rounded transition-colors"
           title="Dismiss alert banner"
         >
           <X className="w-4 h-4" />

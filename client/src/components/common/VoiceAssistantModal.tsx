@@ -144,96 +144,102 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="w-full max-w-md rounded-3xl bg-slate-900 border border-slate-700/80 p-6 shadow-2xl flex flex-col items-center text-center">
-        {/* Close Button */}
-        <div className="w-full flex justify-between items-center mb-2">
-          <span className="text-xs font-bold text-rose-400 uppercase tracking-widest flex items-center gap-1.5">
-            <Volume2 className="w-4 h-4" />
-            {language === 'ta' ? 'குரல் உதவியாளர்' : 'Voice Assistant'}
+    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+      <div className="w-full max-w-md rounded-2xl bg-cyber-panel border border-cyber-cyan/40 p-6 shadow-neon-cyan flex flex-col items-center text-center relative overflow-hidden">
+        {/* Decorative corner brackets */}
+        <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-cyber-cyan"></div>
+        <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-cyber-cyan"></div>
+        <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-cyber-cyan"></div>
+        <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-cyber-cyan"></div>
+
+        {/* Close Button & HUD Header */}
+        <div className="w-full flex justify-between items-center mb-2 pb-2 border-b border-cyber-border">
+          <span className="text-[11px] font-mono font-bold text-cyber-cyan uppercase tracking-widest flex items-center gap-1.5 glow-text-cyan">
+            <Volume2 className="w-4 h-4 animate-pulse text-cyber-cyan" />
+            [AI COMM LINK // {language === 'ta' ? 'குரல் உதவியாளர்' : 'VOICE HUD'}]
           </span>
           <button
             onClick={() => {
               voiceService.stopListening();
               onClose();
             }}
-            className="p-1 rounded-xl text-slate-400 hover:text-white"
+            className="p-1 rounded text-slate-400 hover:text-cyber-cyan hover:bg-cyber-cyan/10 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Instructions */}
-        <h3 className="text-lg font-extrabold text-white mt-2">
-          {language === 'ta' ? 'பேசி உதவி பெறவும்' : 'Speak to Get Help'}
+        <h3 className="text-base sm:text-lg font-mono font-extrabold text-white mt-2 tracking-wide">
+          {language === 'ta' ? 'பேசி உடனடி உதவி பெறவும்' : 'COMM LINK: VOICE INPUT'}
         </h3>
-        <p className="text-xs text-slate-400 mt-1 max-w-xs">
+        <p className="text-xs text-slate-400 font-mono mt-1 max-w-xs">
           {language === 'ta'
             ? 'உதாரணம்: "எனக்கு உதவி வேண்டும்", "வெள்ளம் இருக்கு", "நான் பாதுகாப்பாக இருக்கிறேன்"'
-            : 'Example: "I need help", "Flood on road", "I am safe", "Find shelter"'}
+            : 'Commands: "Emergency Help", "Report Flood Level", "Mark Safe", "Find Shelter"'}
         </p>
 
         {/* Large Central Microphone Button */}
-        <div className="my-8 relative flex items-center justify-center">
+        <div className="my-7 relative flex items-center justify-center">
           {isListening && (
-            <div className="absolute w-36 h-36 rounded-full bg-rose-600/30 animate-ping-slow pointer-events-none" />
+            <div className="absolute w-36 h-36 rounded-full border border-cyber-green/50 bg-cyber-green/10 animate-ping pointer-events-none" />
           )}
           <button
             onClick={isListening ? () => voiceService.stopListening() : handleStartListening}
-            className={`w-28 h-28 rounded-full flex flex-col items-center justify-center shadow-2xl transition-all duration-300 active:scale-95 touch-target ${
+            className={`w-28 h-28 rounded-full flex flex-col items-center justify-center transition-all duration-300 active:scale-95 touch-target ${
               isListening
-                ? 'bg-rose-600 text-white shadow-rose-900/60 ring-8 ring-rose-500/30'
-                : 'bg-gradient-to-tr from-rose-600 to-rose-500 text-white hover:brightness-110 shadow-rose-950/80'
+                ? 'bg-cyber-green text-black shadow-neon-green ring-8 ring-cyber-green/20'
+                : 'bg-cyber-bg border-2 border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan/10 shadow-neon-cyan'
             }`}
           >
             {isListening ? (
-              <MicOff className="w-10 h-10 animate-pulse" />
+              <MicOff className="w-10 h-10 animate-pulse text-black" />
             ) : (
-              <Mic className="w-10 h-10" />
+              <Mic className="w-10 h-10 text-cyber-cyan" />
             )}
-            <span className="text-[11px] font-bold mt-1 tracking-tight">
-              {isListening ? (language === 'ta' ? 'கேட்கிறது...' : 'Listening...') : (language === 'ta' ? 'பேசுங்கள்' : 'Tap to Speak')}
+            <span className="text-[10px] font-mono font-bold mt-1 tracking-wider uppercase">
+              {isListening ? (language === 'ta' ? 'கேட்கிறது...' : 'LISTENING...') : (language === 'ta' ? 'பேசுங்கள்' : 'TAP MIC')}
             </span>
           </button>
         </div>
 
         {/* Live Transcript Display */}
         {transcript && (
-          <div className="w-full p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 text-left mb-4">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
-              {language === 'ta' ? 'நீங்கள் கூறியது:' : 'You said:'}
+          <div className="w-full p-3 rounded-lg bg-cyber-bg border border-cyber-green/40 text-left mb-4 shadow-[0_0_10px_rgba(0,255,157,0.15)]">
+            <span className="text-[10px] font-mono font-bold text-cyber-green uppercase tracking-wider block">
+              &gt; {language === 'ta' ? 'நீங்கள் கூறியது:' : 'TRANSCRIBED:'}
             </span>
-            <p className="text-sm font-semibold text-slate-100 mt-1">
+            <p className="text-sm font-mono text-white mt-1">
               "{transcript}"
             </p>
           </div>
         )}
 
-        {/* Confirmation Flow for Voice Actions (Requirement #24) */}
+        {/* Confirmation Flow for Voice Actions */}
         {confirmingIntent && (
-          <div className="w-full p-4 rounded-2xl bg-rose-950/40 border border-rose-800/80 text-center mb-4 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-center gap-1.5 text-rose-400 font-bold text-xs uppercase mb-1">
+          <div className="w-full p-4 rounded-xl bg-cyber-bg/90 border border-cyber-red/60 text-center mb-4 shadow-[0_0_15px_rgba(255,42,85,0.25)]">
+            <div className="flex items-center justify-center gap-1.5 text-cyber-red font-mono font-bold text-xs uppercase mb-1">
               <AlertCircle className="w-4 h-4" />
               {t.confirmHelpTitle}
             </div>
-            <p className="text-sm font-extrabold text-white mb-3">
-              {confirmingIntent === 'REQUEST_HELP' && (language === 'ta' ? 'அவசர உதவி கோரவா?' : 'Submit Emergency Help Request?')}
-              {confirmingIntent === 'REPORT_FLOOD' && (language === 'ta' ? 'வெள்ளப் பதிவு தொடங்கவா?' : 'Open Flood Report Form?')}
-              {confirmingIntent === 'SAFETY_CHECK' && (language === 'ta' ? 'பாதுகாப்பாக உள்ளீர்கள் என்று பதிவு செய்யவா?' : 'Mark your status as SAFE?')}
+            <p className="text-sm font-mono font-bold text-white mb-3">
+              {confirmingIntent === 'REQUEST_HELP' && (language === 'ta' ? 'அவசர உதவி கோரவா?' : 'Dispatch Emergency Help Request?')}
+              {confirmingIntent === 'REPORT_FLOOD' && (language === 'ta' ? 'வெள்ளப் பதிவு தொடங்கவா?' : 'Open Flood Telemetry Form?')}
+              {confirmingIntent === 'SAFETY_CHECK' && (language === 'ta' ? 'பாதுகாப்பாக உள்ளீர்கள் என்று பதிவு செய்யவா?' : 'Transmit SAFE Status to HQ?')}
             </p>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2 font-mono">
               <button
                 disabled={isProcessing}
                 onClick={handleConfirmAction}
-                className="py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-extrabold text-xs text-white flex items-center justify-center gap-1 shadow-lg shadow-emerald-950"
+                className="py-2.5 rounded bg-cyber-green text-black font-extrabold text-xs flex items-center justify-center gap-1 shadow-neon-green hover:brightness-110"
               >
                 <Check className="w-4 h-4 stroke-[3px]" />
                 {t.yesConfirm}
               </button>
               <button
                 onClick={() => setConfirmingIntent(null)}
-                className="py-3 rounded-xl bg-slate-800 hover:bg-slate-700 font-bold text-xs text-slate-300 flex items-center justify-center gap-1"
+                className="py-2.5 rounded bg-cyber-panel border border-slate-700 font-bold text-xs text-slate-300 hover:text-white flex items-center justify-center gap-1"
               >
                 <X className="w-4 h-4 stroke-[3px]" />
                 {t.noCancel}
@@ -244,15 +250,15 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
 
         {/* Error message */}
         {errorMessage && (
-          <p className="text-xs text-amber-400 mb-4 bg-amber-950/30 p-2.5 rounded-xl border border-amber-900/50">
+          <p className="text-xs text-cyber-amber mb-4 bg-cyber-amber/10 p-2.5 rounded border border-cyber-amber/40 font-mono">
             {errorMessage}
           </p>
         )}
 
         {/* Language Indicator */}
-        <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
-          <span>Active Language:</span>
-          <span className="font-bold text-slate-400">{language === 'ta' ? 'தமிழ் (Tamil)' : 'English'}</span>
+        <div className="text-[11px] text-slate-400 font-mono flex items-center gap-1.5">
+          <span>ACTIVE COMM FREQ:</span>
+          <span className="font-bold text-cyber-green">{language === 'ta' ? 'TAMIL (தமிழ்)' : 'EN-US'}</span>
         </div>
       </div>
     </div>

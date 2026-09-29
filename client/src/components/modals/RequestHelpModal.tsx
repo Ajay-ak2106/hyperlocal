@@ -169,46 +169,49 @@ export const RequestHelpModal: React.FC<RequestHelpModalProps> = ({ isOpen, onCl
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-      <div className="w-full max-w-lg rounded-3xl bg-slate-900 border border-slate-700/80 p-5 sm:p-7 shadow-2xl relative my-auto">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+      <div className="w-full max-w-lg rounded-2xl bg-cyber-panel border border-cyber-red/50 p-5 sm:p-7 shadow-xl shadow-red-950/40 relative my-auto">
+        <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-cyber-red"></div>
+        <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-cyber-red"></div>
+
+        <div className="flex items-center justify-between pb-3 border-b border-cyber-border font-mono">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30">
-              <LifeBuoy className="w-5 h-5" />
+            <div className="w-8 h-8 rounded bg-cyber-red/20 text-cyber-red flex items-center justify-center border border-cyber-red/40">
+              <LifeBuoy className="w-4 h-4 animate-spin-slow" />
             </div>
             <div>
-              <h3 className="text-base sm:text-lg font-black text-white">
-                {language === 'ta' ? 'அவசர உதவி கோரல்' : 'Request Emergency Assistance'}
+              <h3 className="text-base sm:text-lg font-mono font-bold text-white uppercase">
+                {language === 'ta' ? 'அவசர உதவி கோரல்' : 'CRISIS AID // SOS DISPATCH'}
               </h3>
-              <p className="text-xs text-slate-400 flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-rose-500" />
-                {currentArea}
+              <p className="text-xs font-mono text-slate-400 flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-cyber-red" />
+                SECTOR: {currentArea}
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1 rounded-xl text-slate-400 hover:text-white">
+          <button onClick={onClose} className="p-1 rounded text-slate-400 hover:text-white">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {success ? (
-          <div className="py-12 flex flex-col items-center justify-center text-center">
-            <CheckCircle2 className="w-16 h-16 text-emerald-400 animate-bounce mb-3" />
-            <h4 className="text-lg font-extrabold text-white">
-              {language === 'ta' ? 'உதவி கோரிக்கை அனுப்பப்பட்டது!' : 'Assistance Request Broadcasted!'}
+          <div className="py-12 flex flex-col items-center justify-center text-center font-mono">
+            <CheckCircle2 className="w-16 h-16 text-cyber-green animate-bounce mb-3 glow-text-green" />
+            <h4 className="text-lg font-bold text-white uppercase">
+              {language === 'ta' ? 'உதவி கோரிக்கை அனுப்பப்பட்டது!' : 'SOS DISPATCH BROADCASTED!'}
             </h4>
-            <p className="text-xs text-slate-400 mt-1 max-w-xs">
+            <p className="text-xs text-slate-400 font-sans mt-1 max-w-xs">
               {language === 'ta'
                 ? 'அருகிலுள்ள தன்னார்வலர்களுக்கு தகவல் அனுப்பப்பட்டுள்ளது. உடனடி உதவி ஒருங்கிணைக்கப்படுகிறது.'
-                : 'Nearby volunteers and disaster coordinators have been notified in real time.'}
+                : 'Frontline response teams and sector volunteers notified immediately.'}
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+          <form onSubmit={handleSubmit} className="mt-4 space-y-4 font-mono">
             {/* 1-Tap Category Grid */}
             <div>
               <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-                1. {language === 'ta' ? 'தேவையான உதவி வகை (1-தட்டு)' : 'Category of Assistance (One-Tap)'}
+                1. {language === 'ta' ? 'தேவையான உதவி வகை (1-தட்டு)' : 'RESCUE NEED CLASSIFICATION'}
               </label>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {categories.map((c) => {
@@ -219,14 +222,14 @@ export const RequestHelpModal: React.FC<RequestHelpModalProps> = ({ isOpen, onCl
                       type="button"
                       key={c.id}
                       onClick={() => setCategory(c.id)}
-                      className={`flex flex-col items-center justify-center p-2.5 rounded-2xl border transition-all active:scale-95 touch-target ${
+                      className={`flex flex-col items-center justify-center p-2 rounded text-center transition-all active:scale-95 touch-target border ${
                         isSelected
-                          ? `${c.color} ring-2 ring-rose-500 font-black shadow-lg shadow-rose-950/60 scale-[1.03]`
-                          : 'bg-slate-800/60 border-slate-700/80 text-slate-300 hover:bg-slate-800'
+                          ? 'bg-cyber-red text-white border-cyber-red font-black shadow-neon-red scale-[1.03]'
+                          : 'bg-cyber-bg border-cyber-border text-slate-300 hover:border-cyber-red/50'
                       }`}
                     >
-                      <Icon className="w-6 h-6 mb-1" />
-                      <span className="text-[11px] text-center font-bold leading-tight">
+                      <Icon className="w-5 h-5 mb-1" />
+                      <span className="text-[10px] leading-tight font-mono">
                         {language === 'ta' ? c.labelTa : c.labelEn}
                       </span>
                     </button>
@@ -238,7 +241,7 @@ export const RequestHelpModal: React.FC<RequestHelpModalProps> = ({ isOpen, onCl
             {/* Severity Pill Selector */}
             <div>
               <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-                2. {language === 'ta' ? 'அவசர நிலை' : 'Urgency Level'}
+                2. {language === 'ta' ? 'அவசர நிலை' : 'THREAT / PRIORITY LEVEL'}
               </label>
               <div className="grid grid-cols-4 gap-2">
                 {(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as SeverityLevel[]).map((lvl) => (
@@ -246,14 +249,14 @@ export const RequestHelpModal: React.FC<RequestHelpModalProps> = ({ isOpen, onCl
                     type="button"
                     key={lvl}
                     onClick={() => setSeverity(lvl)}
-                    className={`py-2 rounded-xl text-xs font-extrabold border transition-all ${
+                    className={`py-1.5 rounded text-xs font-bold border transition-all ${
                       severity === lvl
                         ? lvl === 'CRITICAL'
-                          ? 'bg-rose-600 border-rose-500 text-white shadow-lg shadow-rose-950'
+                          ? 'bg-cyber-red border-cyber-red text-white shadow-neon-red font-black'
                           : lvl === 'HIGH'
-                          ? 'bg-amber-600 border-amber-500 text-white'
-                          : 'bg-emerald-600 border-emerald-500 text-white'
-                        : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-750'
+                          ? 'bg-cyber-amber border-cyber-amber text-black font-black'
+                          : 'bg-cyber-green border-cyber-green text-black font-black'
+                        : 'bg-cyber-bg border-cyber-border text-slate-400 hover:text-white'
                     }`}
                   >
                     {lvl}
@@ -265,7 +268,7 @@ export const RequestHelpModal: React.FC<RequestHelpModalProps> = ({ isOpen, onCl
             {/* Short Description */}
             <div>
               <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                3. {language === 'ta' ? 'குறுகிய விவரம்' : 'Short Description (Optional)'}
+                3. {language === 'ta' ? 'குறுகிய விவரம்' : 'SITUATION REPORT (OPTIONAL)'}
               </label>
               <textarea
                 value={description}
@@ -274,18 +277,17 @@ export const RequestHelpModal: React.FC<RequestHelpModalProps> = ({ isOpen, onCl
                 placeholder={
                   language === 'ta'
                     ? 'எடுத்துக்காட்டு: முதியவருக்கு அவசர மருந்து தேவை, முதல் தளம்...'
-                    : 'e.g. Elderly patient needs oxygen, trapped on 1st floor...'
+                    : 'e.g. Elderly patient needs oxygen, trapped on 1st floor, water rising...'
                 }
-                className="w-full rounded-2xl bg-slate-950/80 border border-slate-700 p-3 text-xs text-white placeholder-slate-500 focus:border-rose-500"
+                className="w-full rounded bg-cyber-bg border border-cyber-border p-2.5 text-xs text-white placeholder-slate-500 font-sans focus:border-cyber-red outline-none"
               />
             </div>
 
             {/* Quick Media Attach: Photo & Voice Note */}
             <div className="grid grid-cols-2 gap-2">
-              {/* Photo Input */}
-              <label className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-slate-800 hover:bg-slate-750 border border-slate-700 cursor-pointer text-xs font-bold text-slate-200 transition-colors">
-                <Camera className="w-4 h-4 text-sky-400" />
-                <span>{photoUrl ? '✓ Photo Added' : t.takePhoto}</span>
+              <label className="flex items-center justify-center gap-2 p-2.5 rounded bg-cyber-bg hover:bg-cyber-panel border border-cyber-border cursor-pointer text-xs font-bold text-slate-200 transition-colors">
+                <Camera className="w-4 h-4 text-cyber-cyan" />
+                <span>{photoUrl ? '✓ OPTICAL ADDED' : t.takePhoto}</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -295,39 +297,38 @@ export const RequestHelpModal: React.FC<RequestHelpModalProps> = ({ isOpen, onCl
                 />
               </label>
 
-              {/* Voice Record */}
               <button
                 type="button"
                 onClick={handleToggleVoiceRecord}
-                className={`flex items-center justify-center gap-2 p-3 rounded-2xl border text-xs font-bold transition-all ${
+                className={`flex items-center justify-center gap-2 p-2.5 rounded border text-xs font-bold transition-all ${
                   isRecording
-                    ? 'bg-rose-600 border-rose-500 text-white animate-pulse'
+                    ? 'bg-cyber-red text-white border-cyber-red animate-pulse'
                     : audioUrl
-                    ? 'bg-emerald-950 border-emerald-600 text-emerald-300'
-                    : 'bg-slate-800 hover:bg-slate-750 border-slate-700 text-slate-200'
+                    ? 'bg-cyber-green/20 border-cyber-green text-cyber-green'
+                    : 'bg-cyber-bg hover:bg-cyber-panel border-cyber-border text-slate-200'
                 }`}
               >
-                {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4 text-rose-400" />}
-                <span>{isRecording ? t.stopRecording : audioUrl ? '✓ Voice Saved' : t.recordAudio}</span>
+                {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4 text-cyber-red" />}
+                <span>{isRecording ? t.stopRecording : audioUrl ? '✓ VOICE CAPTURED' : t.recordAudio}</span>
               </button>
             </div>
 
             {/* Contact Phone */}
             <div>
               <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
-                {language === 'ta' ? 'தொடர்பு எண்' : 'Callback Phone Number'}
+                {language === 'ta' ? 'தொடர்பு எண்' : 'OPERATIVE CALLBACK FREQ / PHONE'}
               </label>
               <input
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 required
-                className="w-full rounded-xl bg-slate-950/80 border border-slate-700 px-3 py-2 text-xs text-white focus:border-rose-500 font-mono"
+                className="w-full rounded bg-cyber-bg border border-cyber-border px-3 py-2 text-xs text-white focus:border-cyber-red font-mono outline-none"
               />
             </div>
 
             {error && (
-              <p className="text-xs text-rose-400 bg-rose-950/40 p-2.5 rounded-xl border border-rose-900/60">
+              <p className="text-xs text-cyber-red bg-cyber-red/10 p-2.5 rounded border border-cyber-red/40 font-mono">
                 {error}
               </p>
             )}
@@ -336,10 +337,10 @@ export const RequestHelpModal: React.FC<RequestHelpModalProps> = ({ isOpen, onCl
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 font-black text-sm text-white shadow-xl shadow-rose-950 flex items-center justify-center gap-2 active:scale-98 transition-all touch-target"
+              className="w-full py-3.5 rounded bg-cyber-red text-white hover:brightness-110 font-black text-xs uppercase tracking-wider shadow-neon-red flex items-center justify-center gap-2 active:scale-98 transition-all touch-target"
             >
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <LifeBuoy className="w-5 h-5" />}
-              <span>{language === 'ta' ? '🆘 அவசர உதவி கோரவும்' : '🆘 SUBMIT HELP REQUEST'}</span>
+              <span>{language === 'ta' ? '🆘 அவசர உதவி கோரவும்' : 'TRANSMIT SOS DISPATCH'}</span>
             </button>
           </form>
         )}

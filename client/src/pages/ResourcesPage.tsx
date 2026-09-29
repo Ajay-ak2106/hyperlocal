@@ -100,40 +100,43 @@ export const ResourcesPage: React.FC = () => {
 
   return (
     <div className="pb-24 pt-3 px-3 sm:px-6 max-w-5xl mx-auto space-y-4">
-      <div className="bg-slate-900 border border-slate-800 p-5 rounded-3xl shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-cyber-panel border border-cyber-cyan/40 p-5 rounded-2xl shadow-neon-cyan flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative">
+        <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-cyber-cyan"></div>
+        <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-cyber-cyan"></div>
+
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs uppercase font-extrabold px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
-              📦 Emergency Resource Exchange
+            <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/40 glow-text-cyan">
+              [LOGISTICS // CRISIS SUPPLY DEPOT]
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-white">
-            {language === 'ta' ? 'அத்தியாவசியப் பொருட்கள் & உணவு' : 'Emergency Supplies & Food Hub'}
+          <h1 className="text-xl sm:text-2xl font-mono font-black text-white">
+            {language === 'ta' ? 'அத்தியாவசியப் பொருட்கள் & உணவு' : 'EMERGENCY SUPPLIES & RATIONS DEPOT'}
           </h1>
-          <p className="text-xs text-slate-400 mt-1 max-w-xl">
-            Community-supplied food, drinking water, motorboats, and solar charging points.
+          <p className="text-xs font-mono text-slate-400 mt-1 max-w-xl">
+            Community-verified ration drops, drinking water tankers, motorboats, and solar charging grid nodes.
           </p>
         </div>
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="py-3 px-5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs shadow-xl shadow-purple-950 flex items-center justify-center gap-2 active:scale-95 transition-all touch-target"
+          className="py-3 px-5 rounded bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan hover:text-black font-mono font-bold text-xs shadow-[0_0_15px_rgba(0,229,255,0.25)] flex items-center justify-center gap-2 active:scale-95 transition-all touch-target"
         >
           <Plus className="w-4 h-4 stroke-[3px]" />
-          <span>OFFER SUPPLIES</span>
+          <span>+ OFFER SUPPLIES</span>
         </button>
       </div>
 
       {/* Category Filter Pills */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 font-mono">
         {categories.map((c) => (
           <button
             key={c}
             onClick={() => setFilter(c)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded text-xs font-bold transition-all whitespace-nowrap border ${
               filter === c
-                ? 'bg-purple-600 text-white shadow-md shadow-purple-950'
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                ? 'bg-cyber-cyan text-black border-cyber-cyan shadow-[0_0_10px_rgba(0,229,255,0.5)]'
+                : 'bg-cyber-panel text-slate-400 border-cyber-border hover:border-cyber-cyan/50 hover:text-white'
             }`}
           >
             {c.replace(/_/g, ' ')}
@@ -146,45 +149,45 @@ export const ResourcesPage: React.FC = () => {
         {filtered.map((res) => (
           <div
             key={res.id}
-            className="p-5 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl flex flex-col justify-between space-y-3"
+            className="p-5 rounded-xl bg-cyber-panel border border-cyber-border hover:border-cyber-cyan/50 shadow-lg hover:shadow-neon-cyan transition-all flex flex-col justify-between space-y-3 relative group"
           >
             <div>
               <div className="flex items-start justify-between gap-2 mb-1">
-                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-lg bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/40">
                   {res.category.replace(/_/g, ' ')}
                 </span>
-                <span className="text-xs font-bold text-slate-400">📍 {res.area}</span>
+                <span className="text-xs font-mono font-bold text-slate-400">📍 SECTOR: {res.area}</span>
               </div>
 
-              <h3 className="text-base font-extrabold text-white">{res.name}</h3>
+              <h3 className="text-base font-mono font-bold text-white mt-1">{res.name}</h3>
 
-              <div className="mt-2 p-3 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between">
-                <span className="text-xs text-slate-400">Available Stock:</span>
-                <span className="text-base font-black text-emerald-400 font-mono">
-                  {res.quantity} {res.unit}
+              <div className="mt-2.5 p-3 rounded-lg bg-cyber-bg border border-cyber-border flex items-center justify-between">
+                <span className="text-xs font-mono text-slate-400">STOCK IN INVENTORY:</span>
+                <span className="text-base font-mono font-black text-cyber-green glow-text-green">
+                  {res.quantity} {res.unit.toUpperCase()}
                 </span>
               </div>
 
-              <p className="text-xs text-slate-400 mt-2">
-                Provider: <strong className="text-slate-200">{res.provider_name}</strong> • Mode: {res.delivery_mode}
+              <p className="text-xs font-mono text-slate-400 mt-2">
+                PROVIDER: <strong className="text-slate-200">{res.provider_name}</strong> • MODE: {res.delivery_mode}
               </p>
             </div>
 
-            <div className="pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
+            <div className="pt-2 border-t border-cyber-border flex items-center justify-between gap-2 font-mono">
               <a
                 href={`tel:${res.provider_phone}`}
-                className="py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-1.5 touch-target"
+                className="py-2 px-3 rounded bg-cyber-cyan/15 border border-cyber-cyan/40 hover:bg-cyber-cyan hover:text-black text-cyber-cyan font-bold text-xs flex items-center gap-1.5 touch-target transition-colors"
               >
                 <PhoneCall className="w-3.5 h-3.5" />
-                <span>Call Provider</span>
+                <span>CALL DISPATCHER</span>
               </a>
 
               <button
                 onClick={() => handleDistribute(res.id, res.quantity)}
                 disabled={res.quantity <= 0}
-                className="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold active:scale-95 disabled:opacity-50"
+                className="py-2 px-3 rounded bg-cyber-bg border border-cyber-border hover:border-cyber-green text-slate-300 hover:text-cyber-green text-xs font-bold active:scale-95 disabled:opacity-30 transition-colors"
               >
-                Distribute 10 Units
+                DISPATCH 10 UNITS
               </button>
             </div>
           </div>
@@ -193,25 +196,25 @@ export const ResourcesPage: React.FC = () => {
 
       {/* Add Resource Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-3xl bg-slate-900 border border-slate-700 p-6 shadow-2xl relative">
-            <div className="flex justify-between items-center pb-3 border-b border-slate-800">
-              <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
-                <Package className="w-5 h-5 text-purple-400" />
-                Offer Supplies to Community
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="w-full max-w-md rounded-2xl bg-cyber-panel border border-cyber-cyan/50 p-6 shadow-neon-cyan relative">
+            <div className="flex justify-between items-center pb-3 border-b border-cyber-border">
+              <h3 className="text-sm font-mono font-bold text-white flex items-center gap-2">
+                <Package className="w-5 h-5 text-cyber-cyan" />
+                OFFER CRISIS SUPPLIES TO COMMUNITY
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="p-1 rounded-xl text-slate-400 hover:text-white">
+              <button onClick={() => setShowAddModal(false)} className="p-1 rounded text-slate-400 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateResource} className="mt-4 space-y-3">
+            <form onSubmit={handleCreateResource} className="mt-4 space-y-3 font-mono">
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">Category</label>
+                <label className="block text-xs font-bold text-slate-300 mb-1">SUPPLY CATEGORY</label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full rounded-xl bg-slate-950 border border-slate-700 p-2.5 text-xs text-white"
+                  className="w-full rounded bg-cyber-bg border border-cyber-border p-2.5 text-xs text-white focus:border-cyber-cyan outline-none"
                 >
                   <option value="FOOD">FOOD (Meals, Biscuits)</option>
                   <option value="WATER">WATER (Cans, Bottles)</option>
@@ -223,58 +226,58 @@ export const ResourcesPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">Item Title</label>
+                <label className="block text-xs font-bold text-slate-300 mb-1">ITEM SPECIFICATION</label>
                 <input
                   type="text"
                   value={itemName}
                   onChange={(e) => setItemName(e.target.value)}
                   placeholder="e.g. 20L Water Cans or Food Packets"
                   required
-                  className="w-full rounded-xl bg-slate-950 border border-slate-700 p-2.5 text-xs text-white"
+                  className="w-full rounded bg-cyber-bg border border-cyber-border p-2.5 text-xs text-white focus:border-cyber-cyan outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">Quantity</label>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">QUANTITY</label>
                   <input
                     type="number"
                     value={quantity}
                     onChange={(e) => setQuantity(Number(e.target.value))}
                     min={1}
                     required
-                    className="w-full rounded-xl bg-slate-950 border border-slate-700 p-2.5 text-xs text-white"
+                    className="w-full rounded bg-cyber-bg border border-cyber-border p-2.5 text-xs text-white focus:border-cyber-cyan outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">Unit</label>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">UNIT</label>
                   <input
                     type="text"
                     value={unit}
                     onChange={(e) => setUnit(e.target.value)}
                     placeholder="packets, cans, kits"
                     required
-                    className="w-full rounded-xl bg-slate-950 border border-slate-700 p-2.5 text-xs text-white"
+                    className="w-full rounded bg-cyber-bg border border-cyber-border p-2.5 text-xs text-white focus:border-cyber-cyan outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">Provider Name</label>
+                <label className="block text-xs font-bold text-slate-300 mb-1">PROVIDER / TRUST CALLSIGN</label>
                 <input
                   type="text"
                   value={providerName}
                   onChange={(e) => setProviderName(e.target.value)}
                   required
-                  className="w-full rounded-xl bg-slate-950 border border-slate-700 p-2.5 text-xs text-white"
+                  className="w-full rounded bg-cyber-bg border border-cyber-border p-2.5 text-xs text-white focus:border-cyber-cyan outline-none"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3.5 rounded-2xl bg-purple-600 hover:bg-purple-500 font-extrabold text-xs text-white shadow-xl shadow-purple-950 touch-target"
+                className="w-full py-3 rounded bg-cyber-cyan text-black font-extrabold text-xs shadow-[0_0_15px_rgba(0,229,255,0.4)] hover:brightness-110 touch-target uppercase tracking-wider"
               >
-                SUBMIT SUPPLIES TO DATABASE
+                SUBMIT SUPPLIES TO LIVE ROSTER
               </button>
             </form>
           </div>

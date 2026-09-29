@@ -66,6 +66,6 @@ export const ta = {
   stopRecording: 'பதிவை நிறுத்து',
   descriptionPlaceholder: 'குறுகிய விவரம் குறிப்பிடவும்...',
   callNow: 'உடனே அழைக்க',
-  demoDataBadge: 'டெமோ தரவு',
+  demoDataBadge: 'GCC பேரிடர் தரவுத்தொகுப்பு',
   aiEstimateBadge: 'AI மதிப்பீடு',
 };

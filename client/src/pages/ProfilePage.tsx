@@ -47,27 +47,33 @@ export const ProfilePage: React.FC = () => {
   return (
     <div className="pb-24 pt-3 px-3 sm:px-6 max-w-4xl mx-auto space-y-5">
       {/* Title */}
-      <div className="bg-slate-900 border border-slate-800 p-5 rounded-3xl shadow-xl flex items-center justify-between">
+      <div className="bg-cyber-panel border border-cyber-green/40 p-5 rounded-2xl shadow-neon-green flex items-center justify-between relative">
+        <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-cyber-green"></div>
+        <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-cyber-green"></div>
+
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
-            <User className="w-6 h-6 text-rose-500" />
-            My Emergency Profile & Credentials
+          <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded bg-cyber-green/15 text-cyber-green border border-cyber-green/40 glow-text-green">
+            [USER IDENTITY // DISASTER DISPATCH CREDS]
+          </span>
+          <h1 className="text-xl sm:text-2xl font-mono font-black text-white flex items-center gap-2 mt-1">
+            <User className="w-6 h-6 text-cyber-green" />
+            OPERATIVE PROFILE & AUTH CREDENTIALS
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Persisted contact information used for automated rescue dispatch.
+          <p className="text-xs font-mono text-slate-400 mt-1">
+            Persisted contact telemetry used for automated rescue dispatch and SOS triangulation.
           </p>
         </div>
       </div>
 
-      {/* Demo Switcher Quick-Access Section (Requirement #33 & #45) */}
-      <div className="p-5 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-3">
+      {/* Role Switcher Quick-Access Section */}
+      <div className="p-5 rounded-xl bg-cyber-panel border border-cyber-border shadow-xl space-y-3 font-mono">
         <div className="flex items-center justify-between">
-          <h2 className="text-xs font-bold text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
-            <Key className="w-4 h-4 text-amber-400" />
-            🎬 One-Click Demo Role Accounts (Hackathon Prototype)
+          <h2 className="text-xs font-bold text-cyber-cyan uppercase tracking-widest flex items-center gap-1.5 glow-text-cyan">
+            <Key className="w-4 h-4 text-cyber-cyan" />
+            OPERATIONAL CALLSIGN & ACCESS ROLE
           </h2>
-          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-            DEMO DATA
+          <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-cyber-green/20 text-cyber-green border border-cyber-green/40">
+            AUTHENTICATED
           </span>
         </div>
 
@@ -77,33 +83,33 @@ export const ProfilePage: React.FC = () => {
             return (
               <div
                 key={acc.role}
-                className={`p-4 rounded-2xl border transition-all ${
+                className={`p-4 rounded-xl border transition-all ${
                   isCurrent
-                    ? 'bg-rose-950/40 border-rose-600 ring-1 ring-rose-500 shadow-lg shadow-rose-950'
-                    : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+                    ? 'bg-cyber-bg border-cyber-green shadow-neon-green ring-1 ring-cyber-green/50'
+                    : 'bg-cyber-bg/60 border-cyber-border hover:border-cyber-green/40'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-black uppercase text-white">
-                    {acc.role.replace(/_/g, ' ')}
+                  <span className="text-xs font-bold uppercase text-white">
+                    [{acc.role.replace(/_/g, ' ')}]
                   </span>
                   {isCurrent && (
-                    <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Active
+                    <span className="text-[10px] font-bold text-cyber-green flex items-center gap-1 glow-text-green">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> ACTIVE LINK
                     </span>
                   )}
                 </div>
 
-                <div className="text-xs font-bold text-slate-200">{acc.name}</div>
+                <div className="text-xs font-bold text-cyber-cyan">{acc.name}</div>
                 <div className="text-[11px] font-mono text-slate-400">{acc.email}</div>
-                <p className="text-[11px] text-slate-500 mt-1">{acc.desc}</p>
+                <p className="text-[11px] text-slate-400 mt-1 font-sans">{acc.desc}</p>
 
                 {!isCurrent && (
                   <button
                     onClick={() => switchDemoRole(acc.role)}
-                    className="mt-3 w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white transition-colors active:scale-95"
+                    className="mt-3 w-full py-2 rounded bg-cyber-panel hover:bg-cyber-green hover:text-black border border-cyber-border text-xs font-bold text-slate-300 transition-colors active:scale-95"
                   >
-                    Switch to {acc.role.replace(/_/g, ' ')}
+                    ACTIVATE ROLE
                   </button>
                 )}
               </div>
@@ -113,49 +119,49 @@ export const ProfilePage: React.FC = () => {
       </div>
 
       {/* Edit Profile Form */}
-      <form onSubmit={handleSaveProfile} className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-4">
-        <h2 className="text-sm font-black text-white">Contact & Location Settings</h2>
+      <form onSubmit={handleSaveProfile} className="p-6 rounded-xl bg-cyber-panel border border-cyber-border shadow-xl space-y-4 font-mono">
+        <h2 className="text-sm font-bold text-white tracking-wider uppercase">&gt; UPDATE CONTACT & SECTOR TELEMETRY</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1">Full Name</label>
+            <label className="block text-xs font-bold text-slate-300 mb-1">CALLSIGN / FULL NAME</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full rounded-xl bg-slate-950 border border-slate-700 p-2.5 text-xs text-white"
+              className="w-full rounded bg-cyber-bg border border-cyber-border p-2.5 text-xs text-white font-sans focus:border-cyber-green outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1">Phone Number</label>
+            <label className="block text-xs font-bold text-slate-300 mb-1">CALLBACK PHONE FREQ</label>
             <input
               type="tel"
               value={mobile}
               onChange={(e) => setMobile(e.target.value)}
               required
-              className="w-full rounded-xl bg-slate-950 border border-slate-700 p-2.5 text-xs text-white font-mono"
+              className="w-full rounded bg-cyber-bg border border-cyber-border p-2.5 text-xs text-white font-mono focus:border-cyber-green outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1">Hyperlocal Ward / Area</label>
+            <label className="block text-xs font-bold text-slate-300 mb-1">GEO-SECTOR / WARD</label>
             <input
               type="text"
               value={area}
               onChange={(e) => setArea(e.target.value)}
               required
-              className="w-full rounded-xl bg-slate-950 border border-slate-700 p-2.5 text-xs text-white"
+              className="w-full rounded bg-cyber-bg border border-cyber-border p-2.5 text-xs text-white font-sans focus:border-cyber-green outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1">Preferred Language</label>
+            <label className="block text-xs font-bold text-slate-300 mb-1">COMMUNICATION FREQ LANGUAGE</label>
             <select
               value={prefLang}
               onChange={(e: any) => setPrefLang(e.target.value)}
-              className="w-full rounded-xl bg-slate-950 border border-slate-700 p-2.5 text-xs text-white"
+              className="w-full rounded bg-cyber-bg border border-cyber-border p-2.5 text-xs text-white font-sans focus:border-cyber-green outline-none"
             >
               <option value="ta">தமிழ் (Tamil)</option>
               <option value="en">English</option>
@@ -164,18 +170,18 @@ export const ProfilePage: React.FC = () => {
         </div>
 
         {savedSuccess && (
-          <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-800 text-emerald-300 text-xs font-bold flex items-center gap-2">
+          <div className="p-3 rounded bg-cyber-green/15 border border-cyber-green text-cyber-green text-xs font-bold flex items-center gap-2 glow-text-green">
             <CheckCircle2 className="w-4 h-4" />
-            Profile updated and persisted to real database!
+            OPERATIVE PROFILE TRANSMITTED AND PERSISTED TO SECURE VAULT!
           </div>
         )}
 
         <button
           type="submit"
           disabled={saving}
-          className="py-3 px-6 rounded-2xl bg-rose-600 hover:bg-rose-500 font-extrabold text-xs text-white shadow-xl shadow-rose-950 active:scale-95 transition-all touch-target"
+          className="py-3 px-6 rounded bg-cyber-green text-black font-extrabold text-xs shadow-neon-green hover:brightness-110 active:scale-95 transition-all touch-target"
         >
-          {saving ? 'Saving...' : 'SAVE PROFILE TO DATABASE'}
+          {saving ? 'SYNCHRONIZING...' : 'PERSIST PROFILE UPDATES'}
         </button>
       </form>
     </div>
