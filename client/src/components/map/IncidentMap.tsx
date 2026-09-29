@@ -105,7 +105,6 @@ export const IncidentMap: React.FC<IncidentMapProps> = ({
   const [resources, setResources] = useState<Resource[]>([]);
   const [filter, setFilter] = useState<string>(initialFilter);
   const [showCorridors, setShowCorridors] = useState(true);
-  const [tileMode, setTileMode] = useState<'voyager' | 'osm'>('voyager');
 
   const loadMapData = async () => {
     try {
@@ -238,21 +237,12 @@ export const IncidentMap: React.FC<IncidentMapProps> = ({
         <MapResizeHandler />
         <RecenterAutomatically lat={coords.latitude} lng={coords.longitude} />
 
-        {/* Natural Cartography Tiles: clear roads, blue water, green parks */}
-        {tileMode === 'voyager' ? (
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-            subdomains="abcd"
-            maxZoom={19}
-          />
-        ) : (
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            maxZoom={19}
-          />
-        )}
+        {/* 100% Free OpenStreetMap Natural Tiles - No API key required */}
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          maxZoom={19}
+        />
 
         {/* Safe Evacuation Corridors (Clean Emerald Lines) */}
         {showCorridors &&

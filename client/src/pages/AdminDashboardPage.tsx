@@ -11,11 +11,7 @@ import {
   Home,
   CheckCircle2,
   XCircle,
-  Clock,
-  Radio,
-  ExternalLink,
   ShieldCheck,
-  RefreshCw,
   Loader2
 } from 'lucide-react';
 
@@ -57,14 +53,13 @@ export const AdminDashboardPage: React.FC = () => {
     fetchDashboardData();
   }, [lastRealtimeEvent]);
 
-  // Admin verifies incident
   const handleVerifyIncident = async (id: string, newVerificationStatus: 'VERIFIED' | 'REJECTED') => {
     setVerifyingId(id);
     try {
       await api.updateIncident(id, {
         verification_status: newVerificationStatus,
         verified_by: user?.id || 'user-admin-1',
-        verification_notes: `Verified by State Disaster HQ Admin at ${new Date().toLocaleTimeString()}`
+        verification_notes: `Verified by GCC Admin at ${new Date().toLocaleTimeString()}`
       });
       await fetchDashboardData();
     } catch (err: any) {
@@ -74,7 +69,6 @@ export const AdminDashboardPage: React.FC = () => {
     }
   };
 
-  // Live KPI counters directly calculated from database arrays
   const activeIncidents = incidents.filter((i) => i.status !== 'RESOLVED' && i.status !== 'REJECTED');
   const openHelpRequests = requests.filter((r) => r.status === 'PENDING' || r.status === 'IN_PROGRESS');
   const totalShelterCapacity = shelters.reduce((acc, s) => acc + s.capacity, 0);
@@ -83,188 +77,158 @@ export const AdminDashboardPage: React.FC = () => {
   return (
     <div className="pb-24 pt-3 px-3 sm:px-6 max-w-7xl mx-auto space-y-5">
       {/* Admin Title Header */}
-      <div className="bg-cyber-panel border border-cyber-green/40 p-5 rounded-2xl shadow-neon-green flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative">
-        <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-cyber-green"></div>
-        <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-cyber-green"></div>
-
+      <div className="bg-slate-900 border border-slate-700 p-5 rounded-2xl shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded bg-cyber-red/15 text-cyber-red border border-cyber-red/40 glow-text-red">
-              [COMMAND OVERVIEW // STATE DISASTER OPS HQ]
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-950 text-red-300 border border-red-600/40">
+              ● Official Admin Portal
             </span>
-            <span className="text-xs font-mono font-bold text-cyber-green glow-text-green">● LIVE DB TELEMETRY STREAM</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-mono font-black text-white">
-            CENTRAL CRISIS COMMAND & INTELLIGENCE HUD
+          <h1 className="text-xl sm:text-2xl font-bold text-white">
+            Disaster Management & Verification Center
           </h1>
-          <p className="text-xs font-mono text-slate-400 mt-1">
-            Realtime multi-agency coordination, incident verification, shelter load balancing, and volunteer sortie dispatch.
+          <p className="text-xs text-slate-300 mt-1">
+            Incident verification, shelter management, and assistance request coordination.
           </p>
         </div>
 
         <button
           onClick={() => switchDemoRole('CITIZEN')}
-          className="py-2.5 px-4 rounded bg-cyber-bg hover:bg-cyber-panel text-slate-300 text-xs font-mono font-bold border border-cyber-border hover:border-cyber-green/50 active:scale-95 transition-colors"
+          className="py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition-colors"
         >
-          SWITCH TO CITIZEN HUD
+          Switch to Citizen View
         </button>
       </div>
 
-      {/* Real Live KPI Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 font-mono">
+      {/* KPI Stat Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         {/* Active Incidents */}
-        <div className="p-4 rounded-xl bg-cyber-panel border border-cyber-red/40 shadow-[0_0_15px_rgba(255,42,85,0.15)] relative overflow-hidden">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-bold mb-2">
-            <span>ACTIVE INCIDENTS</span>
-            <AlertTriangle className="w-4 h-4 text-cyber-red animate-pulse" />
+        <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700">
+          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold mb-1">
+            <span>Active Incidents</span>
+            <AlertTriangle className="w-4 h-4 text-red-400" />
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-cyber-red glow-text-red">
+          <div className="text-2xl sm:text-3xl font-bold text-red-400">
             {activeIncidents.length}
           </div>
-          <span className="text-[10px] text-slate-400 mt-1 block">CRITICAL SECTORS ACTIVE</span>
+          <span className="text-[11px] text-slate-400 mt-0.5 block">Reported in sector</span>
         </div>
 
         {/* Open Help Requests */}
-        <div className="p-4 rounded-xl bg-cyber-panel border border-cyber-amber/40 shadow-[0_0_15px_rgba(255,183,3,0.15)] relative overflow-hidden">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-bold mb-2">
-            <span>OPEN SOS QUEUE</span>
-            <LifeBuoy className="w-4 h-4 text-cyber-amber animate-spin-slow" />
+        <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700">
+          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold mb-1">
+            <span>Open Help Requests</span>
+            <LifeBuoy className="w-4 h-4 text-amber-400" />
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-cyber-amber">
+          <div className="text-2xl sm:text-3xl font-bold text-amber-400">
             {openHelpRequests.length}
           </div>
-          <span className="text-[10px] text-slate-400 mt-1 block">AWAITING / IN TRANSIT</span>
+          <span className="text-[11px] text-slate-400 mt-0.5 block">Pending or en route</span>
         </div>
 
-        {/* Available Volunteers */}
-        <div className="p-4 rounded-xl bg-cyber-panel border border-cyber-cyan/40 shadow-[0_0_15px_rgba(0,229,255,0.15)] relative overflow-hidden">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-bold mb-2">
-            <span>OPERATIVE CORPS</span>
-            <Users className="w-4 h-4 text-cyber-cyan" />
+        {/* Volunteers */}
+        <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700">
+          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold mb-1">
+            <span>Volunteers</span>
+            <Users className="w-4 h-4 text-sky-400" />
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-cyber-cyan glow-text-cyan">
+          <div className="text-2xl sm:text-3xl font-bold text-sky-400">
             {volunteers.length}
           </div>
-          <span className="text-[10px] text-slate-400 mt-1 block">TRAINED & DEPLOYED</span>
+          <span className="text-[11px] text-slate-400 mt-0.5 block">Registered responders</span>
         </div>
 
-        {/* Shelters Occupancy */}
-        <div className="p-4 rounded-xl bg-cyber-panel border border-cyber-green/40 shadow-neon-green relative overflow-hidden">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-bold mb-2">
-            <span>SHELTER CAPACITY</span>
-            <Home className="w-4 h-4 text-cyber-green" />
+        {/* Shelter Occupancy */}
+        <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700">
+          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold mb-1">
+            <span>Shelter Occupancy</span>
+            <Home className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-cyber-green glow-text-green">
+          <div className="text-2xl sm:text-3xl font-bold text-emerald-400">
             {totalShelterOccupancy} <span className="text-xs text-slate-400 font-normal">/ {totalShelterCapacity}</span>
           </div>
-          <span className="text-[10px] text-slate-400 mt-1 block">{shelters.length} DESIGNATED FACILITIES</span>
+          <span className="text-[11px] text-slate-400 mt-0.5 block">{shelters.length} relief camps</span>
         </div>
 
-        {/* Safety Check-in Ratio */}
-        <div className="p-4 rounded-xl bg-cyber-panel border border-slate-700 shadow-md col-span-2 lg:col-span-1 relative overflow-hidden">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-bold mb-2">
-            <span>SAFETY STATUS</span>
-            <ShieldCheck className="w-4 h-4 text-cyber-green" />
+        {/* Safety Counts */}
+        <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700 col-span-2 lg:col-span-1">
+          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold mb-1">
+            <span>Safety Check-ins</span>
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-white">
-            <span className="text-cyber-green">{safetySummary.SAFE}</span> <span className="text-xs text-cyber-red">/ {safetySummary.EMERGENCY} SOS</span>
+          <div className="text-2xl sm:text-3xl font-bold text-white">
+            <span className="text-emerald-400">{safetySummary.SAFE}</span> <span className="text-xs text-red-400">/ {safetySummary.EMERGENCY} SOS</span>
           </div>
-          <span className="text-[10px] text-slate-400 mt-1 block">FROM {safetySummary.TOTAL} CITIZEN LOGS</span>
+          <span className="text-[11px] text-slate-400 mt-0.5 block">Out of {safetySummary.TOTAL} citizens</span>
         </div>
       </div>
 
-      {/* Incident Verification & Status Management Queue */}
-      <div className="bg-cyber-panel border border-cyber-border p-5 rounded-2xl shadow-xl space-y-4">
-        <div className="flex items-center justify-between font-mono">
-          <h2 className="text-sm font-black text-white flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-cyber-red" />
-            INCIDENT VERIFICATION ROSTER (FIELD TELEMETRY)
+      {/* Incident Verification Table */}
+      <div className="bg-slate-800/80 border border-slate-700 p-5 rounded-2xl shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold text-white flex items-center gap-2">
+            <ShieldAlert className="w-4 h-4 text-red-400" />
+            <span>Incident Verification Queue</span>
           </h2>
-          <span className="text-xs text-cyber-cyan">{incidents.length} RECORDS IN BUFFER</span>
+          <span className="text-xs text-slate-400">{incidents.length} total reports</span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono">
+          <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-cyber-border text-slate-400 font-bold uppercase text-[10px]">
-                <th className="pb-2.5">SECTOR / SEVERITY</th>
-                <th className="pb-2.5">LOCATION</th>
-                <th className="pb-2.5">FIELD REPORT</th>
-                <th className="pb-2.5">REPORTER</th>
-                <th className="pb-2.5">VERIFICATION</th>
-                <th className="pb-2.5 text-right">COMMAND ACTION</th>
+              <tr className="border-b border-slate-700 text-slate-400 font-semibold uppercase text-[11px]">
+                <th className="pb-2.5">Type & Severity</th>
+                <th className="pb-2.5">Area</th>
+                <th className="pb-2.5">Description</th>
+                <th className="pb-2.5">Status</th>
+                <th className="pb-2.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-cyber-border/60">
+            <tbody className="divide-y divide-slate-700/60">
               {incidents.slice(0, 10).map((inc) => (
-                <tr key={inc.id} className="hover:bg-cyber-bg/50 transition-colors">
-                  <td className="py-3 pr-2">
-                    <span className="font-bold text-white block">[{inc.type}]</span>
-                    <span
-                      className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded border ${
-                        inc.severity === 'CRITICAL'
-                          ? 'bg-cyber-red/20 text-cyber-red border-cyber-red/40'
-                          : inc.severity === 'HIGH'
-                          ? 'bg-cyber-amber/20 text-cyber-amber border-cyber-amber/40'
-                          : 'bg-slate-800 text-slate-300 border-slate-700'
-                      }`}
-                    >
+                <tr key={inc.id} className="hover:bg-slate-900/40 transition-colors">
+                  <td className="py-3">
+                    <span className="font-bold text-white block">{inc.type}</span>
+                    <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${
+                      inc.severity === 'CRITICAL' ? 'bg-red-900/60 text-red-200' : 'bg-slate-700 text-slate-300'
+                    }`}>
                       {inc.severity}
                     </span>
                   </td>
-
-                  <td className="py-3 pr-2 font-bold text-slate-200">
-                    📍 {inc.area}
-                  </td>
-
-                  <td className="py-3 pr-3 text-slate-300 max-w-xs truncate font-sans">
-                    {inc.description}
-                  </td>
-
-                  <td className="py-3 pr-2 text-slate-400">
-                    {inc.reporter_name || 'ANONYMOUS'}
-                  </td>
-
-                  <td className="py-3 pr-2">
-                    <span
-                      className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${
-                        inc.verification_status === 'VERIFIED'
-                          ? 'bg-cyber-green/15 text-cyber-green border-cyber-green/40'
-                          : inc.verification_status === 'REJECTED'
-                          ? 'bg-cyber-red/15 text-cyber-red border-cyber-red/40'
-                          : 'bg-cyber-amber/15 text-cyber-amber border-cyber-amber/40 animate-pulse'
-                      }`}
-                    >
+                  <td className="py-3 text-slate-300 font-medium">📍 {inc.area}</td>
+                  <td className="py-3 text-slate-300 max-w-xs truncate">{inc.description}</td>
+                  <td className="py-3">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                      inc.verification_status === 'VERIFIED'
+                        ? 'bg-emerald-950 text-emerald-300 border border-emerald-600/40'
+                        : inc.verification_status === 'REJECTED'
+                        ? 'bg-red-950 text-red-300 border border-red-600/40'
+                        : 'bg-amber-950 text-amber-300 border border-amber-600/40'
+                    }`}>
                       {inc.verification_status}
                     </span>
                   </td>
-
                   <td className="py-3 text-right">
-                    <div className="flex items-center justify-end gap-1.5">
-                      {inc.verification_status !== 'VERIFIED' && (
+                    {inc.verification_status === 'UNVERIFIED' && (
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
                           disabled={verifyingId === inc.id}
                           onClick={() => handleVerifyIncident(inc.id, 'VERIFIED')}
-                          className="py-1 px-2.5 rounded bg-cyber-green text-black font-extrabold text-[11px] flex items-center gap-1 hover:brightness-110 active:scale-95 shadow-neon-green"
-                          title="Verify Incident"
+                          className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-[11px] flex items-center gap-1 transition-colors"
                         >
                           <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>VERIFY</span>
+                          <span>Verify</span>
                         </button>
-                      )}
-
-                      {inc.verification_status !== 'REJECTED' && (
                         <button
                           disabled={verifyingId === inc.id}
                           onClick={() => handleVerifyIncident(inc.id, 'REJECTED')}
-                          className="py-1 px-2.5 rounded bg-cyber-bg border border-cyber-red text-cyber-red hover:bg-cyber-red hover:text-white font-extrabold text-[11px] flex items-center gap-1 active:scale-95 transition-colors"
-                          title="Reject / False Alarm"
+                          className="px-2.5 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold text-[11px] flex items-center gap-1 transition-colors"
                         >
                           <XCircle className="w-3.5 h-3.5" />
-                          <span>REJECT</span>
+                          <span>Reject</span>
                         </button>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}

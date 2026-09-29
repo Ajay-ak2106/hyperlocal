@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext.js';
 import { api } from '../services/api.js';
-import { User, Phone, MapPin, Globe, Shield, LifeBuoy, CheckCircle2, UserCheck, Key } from 'lucide-react';
+import { User, Phone, MapPin, Globe, Shield, LifeBuoy, CheckCircle2, UserCheck, Key, ShieldAlert } from 'lucide-react';
 import { UserRole } from '../types/index.js';
 
 export const ProfilePage: React.FC = () => {
@@ -37,79 +37,79 @@ export const ProfilePage: React.FC = () => {
     }
   };
 
-  const demoAccounts: { role: UserRole; email: string; name: string; desc: string }[] = [
-    { role: 'CITIZEN', email: 'demo.citizen@example.com', name: 'Kavitha Ramachandran', desc: 'Family in Velachery low-lying zone' },
-    { role: 'VOLUNTEER', email: 'demo.volunteer@example.com', name: 'Senthil Kumar', desc: 'Certified Swift Water Rescue & Boat Operator' },
-    { role: 'COMMUNITY_COORDINATOR', email: 'muthu.citizen@example.com', name: 'Muthukumar S', desc: 'Ward Safety Coordinator Tambaram' },
-    { role: 'ADMIN', email: 'demo.admin@example.com', name: 'TN State Emergency HQ', desc: 'Disaster Verification & Broadcast HQ' },
+  const demoAccounts: { role: UserRole; email: string; name: string; desc: string; icon: any; color: string }[] = [
+    { role: 'CITIZEN', email: 'demo.citizen@example.com', name: 'Kavitha Ramachandran', desc: 'Resident in Velachery low-lying area', icon: User, color: 'text-emerald-400' },
+    { role: 'VOLUNTEER', email: 'demo.volunteer@example.com', name: 'Senthil Kumar', desc: 'Certified Swift Water Rescue & Boat Operator', icon: LifeBuoy, color: 'text-sky-400' },
+    { role: 'COMMUNITY_COORDINATOR', email: 'muthu.citizen@example.com', name: 'Muthukumar S', desc: 'Ward Safety Coordinator Tambaram', icon: Shield, color: 'text-amber-400' },
+    { role: 'ADMIN', email: 'demo.admin@example.com', name: 'State Disaster Ops HQ', desc: 'GCC Disaster Verification & Control', icon: ShieldAlert, color: 'text-red-400' },
   ];
 
   return (
     <div className="pb-24 pt-3 px-3 sm:px-6 max-w-4xl mx-auto space-y-5">
       {/* Title */}
-      <div className="bg-cyber-panel border border-cyber-green/40 p-5 rounded-2xl shadow-neon-green flex items-center justify-between relative">
-        <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-cyber-green"></div>
-        <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-cyber-green"></div>
-
+      <div className="bg-slate-900 border border-slate-700 p-5 rounded-2xl shadow-lg flex items-center justify-between">
         <div>
-          <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded bg-cyber-green/15 text-cyber-green border border-cyber-green/40 glow-text-green">
-            [USER IDENTITY // DISASTER DISPATCH CREDS]
-          </span>
-          <h1 className="text-xl sm:text-2xl font-mono font-black text-white flex items-center gap-2 mt-1">
-            <User className="w-6 h-6 text-cyber-green" />
-            OPERATIVE PROFILE & AUTH CREDENTIALS
+          <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+            <User className="w-6 h-6 text-emerald-400" />
+            {language === 'ta' ? 'சுயவிவரம் & அமைப்புகள்' : 'Profile & Settings'}
           </h1>
-          <p className="text-xs font-mono text-slate-400 mt-1">
-            Persisted contact telemetry used for automated rescue dispatch and SOS triangulation.
+          <p className="text-xs text-slate-300 mt-1">
+            {language === 'ta'
+              ? 'உங்கள் தொடர்பு விவரங்கள், பகுதி மற்றும் மொழி விருப்பங்கள்.'
+              : 'Manage your contact details, locality, and emergency contact preferences.'}
           </p>
         </div>
       </div>
 
-      {/* Role Switcher Quick-Access Section */}
-      <div className="p-5 rounded-xl bg-cyber-panel border border-cyber-border shadow-xl space-y-3 font-mono">
+      {/* Role Switcher Section */}
+      <div className="p-5 rounded-2xl bg-slate-800/80 border border-slate-700 shadow-sm space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-xs font-bold text-cyber-cyan uppercase tracking-widest flex items-center gap-1.5 glow-text-cyan">
-            <Key className="w-4 h-4 text-cyber-cyan" />
-            OPERATIONAL CALLSIGN & ACCESS ROLE
+          <h2 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+            <Key className="w-4 h-4 text-emerald-400" />
+            <span>Switch Role (Test Demonstration)</span>
           </h2>
-          <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-cyber-green/20 text-cyber-green border border-cyber-green/40">
-            AUTHENTICATED
+          <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-900 text-emerald-300 border border-slate-700">
+            Current: {role}
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {demoAccounts.map((acc) => {
             const isCurrent = role === acc.role;
+            const Icon = acc.icon;
             return (
               <div
                 key={acc.role}
                 className={`p-4 rounded-xl border transition-all ${
                   isCurrent
-                    ? 'bg-cyber-bg border-cyber-green shadow-neon-green ring-1 ring-cyber-green/50'
-                    : 'bg-cyber-bg/60 border-cyber-border hover:border-cyber-green/40'
+                    ? 'bg-slate-900 border-emerald-500 shadow-sm'
+                    : 'bg-slate-900/60 border-slate-700 hover:border-slate-600'
                 }`}
               >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-bold uppercase text-white">
-                    [{acc.role.replace(/_/g, ' ')}]
-                  </span>
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <Icon className={`w-4 h-4 ${acc.color}`} />
+                    <span className="text-xs font-bold uppercase text-white">
+                      {acc.role.replace(/_/g, ' ')}
+                    </span>
+                  </div>
                   {isCurrent && (
-                    <span className="text-[10px] font-bold text-cyber-green flex items-center gap-1 glow-text-green">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> ACTIVE LINK
+                    <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Active
                     </span>
                   )}
                 </div>
 
-                <div className="text-xs font-bold text-cyber-cyan">{acc.name}</div>
-                <div className="text-[11px] font-mono text-slate-400">{acc.email}</div>
-                <p className="text-[11px] text-slate-400 mt-1 font-sans">{acc.desc}</p>
+                <div className="text-xs font-semibold text-white">{acc.name}</div>
+                <div className="text-[11px] text-slate-400">{acc.email}</div>
+                <p className="text-[11px] text-slate-300 mt-1">{acc.desc}</p>
 
                 {!isCurrent && (
                   <button
                     onClick={() => switchDemoRole(acc.role)}
-                    className="mt-3 w-full py-2 rounded bg-cyber-panel hover:bg-cyber-green hover:text-black border border-cyber-border text-xs font-bold text-slate-300 transition-colors active:scale-95"
+                    className="mt-3 w-full py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 hover:text-white border border-slate-700 text-xs font-semibold text-slate-200 transition-colors active:scale-95"
                   >
-                    ACTIVATE ROLE
+                    Switch to this role
                   </button>
                 )}
               </div>
@@ -119,49 +119,51 @@ export const ProfilePage: React.FC = () => {
       </div>
 
       {/* Edit Profile Form */}
-      <form onSubmit={handleSaveProfile} className="p-6 rounded-xl bg-cyber-panel border border-cyber-border shadow-xl space-y-4 font-mono">
-        <h2 className="text-sm font-bold text-white tracking-wider uppercase">&gt; UPDATE CONTACT & SECTOR TELEMETRY</h2>
+      <form onSubmit={handleSaveProfile} className="p-6 rounded-2xl bg-slate-800/80 border border-slate-700 shadow-sm space-y-4">
+        <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+          Update Contact & Locality Details
+        </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1">CALLSIGN / FULL NAME</label>
+            <label className="block text-xs font-semibold text-slate-300 mb-1">Full Name</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full rounded bg-cyber-bg border border-cyber-border p-2.5 text-xs text-white font-sans focus:border-cyber-green outline-none"
+              className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-xs text-white focus:border-emerald-500 outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1">CALLBACK PHONE FREQ</label>
+            <label className="block text-xs font-semibold text-slate-300 mb-1">Phone Number</label>
             <input
               type="tel"
               value={mobile}
               onChange={(e) => setMobile(e.target.value)}
               required
-              className="w-full rounded bg-cyber-bg border border-cyber-border p-2.5 text-xs text-white font-mono focus:border-cyber-green outline-none"
+              className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-xs text-white focus:border-emerald-500 outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1">GEO-SECTOR / WARD</label>
+            <label className="block text-xs font-semibold text-slate-300 mb-1">Locality / Ward</label>
             <input
               type="text"
               value={area}
               onChange={(e) => setArea(e.target.value)}
               required
-              className="w-full rounded bg-cyber-bg border border-cyber-border p-2.5 text-xs text-white font-sans focus:border-cyber-green outline-none"
+              className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-xs text-white focus:border-emerald-500 outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1">COMMUNICATION FREQ LANGUAGE</label>
+            <label className="block text-xs font-semibold text-slate-300 mb-1">Preferred Language</label>
             <select
               value={prefLang}
               onChange={(e: any) => setPrefLang(e.target.value)}
-              className="w-full rounded bg-cyber-bg border border-cyber-border p-2.5 text-xs text-white font-sans focus:border-cyber-green outline-none"
+              className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-xs text-white focus:border-emerald-500 outline-none"
             >
               <option value="ta">தமிழ் (Tamil)</option>
               <option value="en">English</option>
@@ -170,18 +172,18 @@ export const ProfilePage: React.FC = () => {
         </div>
 
         {savedSuccess && (
-          <div className="p-3 rounded bg-cyber-green/15 border border-cyber-green text-cyber-green text-xs font-bold flex items-center gap-2 glow-text-green">
-            <CheckCircle2 className="w-4 h-4" />
-            OPERATIVE PROFILE TRANSMITTED AND PERSISTED TO SECURE VAULT!
+          <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 text-xs font-semibold flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            Profile updated successfully!
           </div>
         )}
 
         <button
           type="submit"
           disabled={saving}
-          className="py-3 px-6 rounded bg-cyber-green text-black font-extrabold text-xs shadow-neon-green hover:brightness-110 active:scale-95 transition-all touch-target"
+          className="py-3 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm active:scale-95 transition-all"
         >
-          {saving ? 'SYNCHRONIZING...' : 'PERSIST PROFILE UPDATES'}
+          {saving ? 'Saving...' : 'Save Profile'}
         </button>
       </form>
     </div>
