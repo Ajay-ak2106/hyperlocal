@@ -24,7 +24,7 @@ interface ReportFloodModalProps {
 }
 
 export const ReportFloodModal: React.FC<ReportFloodModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { currentArea, coords, t, language } = useAuth();
+  const { currentArea, coords, t, language, user } = useAuth();
 
   const [condition, setCondition] = useState<FloodCondition>('WATER_ON_ROAD');
   const [description, setDescription] = useState('');
@@ -138,6 +138,10 @@ export const ReportFloodModal: React.FC<ReportFloodModalProps> = ({ isOpen, onCl
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      alert(language === 'ta' ? "இந்த அம்சத்தை பயன்படுத்த நீங்கள் உள்நுழைய வேண்டும்." : "Please log in to submit a report.");
+      return;
+    }
     setLoading(true);
     setError(null);
 

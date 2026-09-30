@@ -156,6 +156,10 @@ export const RequestHelpModal: React.FC<RequestHelpModalProps> = ({ isOpen, onCl
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      alert(language === 'ta' ? "உதவி கோர நீங்கள் உள்நுழைய வேண்டும்." : "Please log in to request emergency assistance.");
+      return;
+    }
     setLoading(true);
     setError(null);
 

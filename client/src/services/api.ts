@@ -419,7 +419,31 @@ export const api = {
       () => localStore.signup(payload),
       'signup'
     ),
-  getMe: (user_id?: string) => {
+  getMe: async (user_id?: string) => {
+    if (supabase && user_id) {
+      let { data, error } = await supabase.from('profiles').select('*').eq('id', user_id).single();
+      
+      if (error && error.code === 'PGRST116') {
+        // Profile doesn't exist, create it
+        const newProfile = {
+          id: user_id,
+          name: 'New Citizen',
+          role: 'citizen',
+          language: 'ta',
+          area: 'Chennai'
+        };
+        const insertRes = await supabase.from('profiles').insert(newProfile).select().single();
+        if (insertRes.error) {
+           console.error('Supabase Profile Creation Error:', insertRes.error);
+        } else {
+           data = insertRes.data;
+        }
+      } else if (error) {
+        console.error('Supabase getMe Error:', error);
+      }
+      return { user: { id: user_id }, profile: data };
+    }
+
     const qs = user_id ? `?user_id=${user_id}` : '';
     return resilientCall(
       () => fetchJSON<any>(`/auth/me${qs}`),

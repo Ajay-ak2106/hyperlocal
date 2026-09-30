@@ -24,7 +24,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   // Pass non-GET and API/WS calls straight to network
   if (event.request.method !== 'GET') return;
-  if (event.request.url.includes('/api/') || event.request.url.includes('/ws')) return;
+  if (event.request.url.includes('/api/') || event.request.url.includes('/ws') || event.request.url.includes('supabase.co')) return;
 
   // Network-first strategy for HTML documents and assets
   event.respondWith(
