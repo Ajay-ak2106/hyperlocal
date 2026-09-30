@@ -158,13 +158,25 @@ export const api = {
   // Assistance Requests
   getAssistanceRequests: async (params?: { status?: string; category?: string; area?: string }) => {
     if (supabase) {
-      let query = supabase.from('aid_requests').select('*');
-      if (params?.status) query = query.eq('status', params.status);
-      if (params?.category) query = query.eq('need_type', params.category);
-      if (params?.area) query = query.ilike('area', `%${params.area}%`);
+      let query = supabase.from('aid_requests').select('*, incidents(*)');
+      if (params?.status) query = query.eq('status', params.status.toLowerCase());
+      if (params?.category) query = query.eq('need_type', params.category.toLowerCase());
       const { data, error } = await query;
       if (error) console.error('Supabase getAssistanceRequests Error:', error);
-      if (data) return data;
+      if (data) {
+        return data.map((row: any) => ({
+          id: row.id,
+          category: row.need_type?.toUpperCase() || 'OTHER',
+          severity: row.incidents?.severity?.toUpperCase() || 'HIGH',
+          description: row.incidents?.description || 'Assistance Needed',
+          area: row.incidents?.address || 'Unknown Area',
+          status: row.status?.toUpperCase() || 'PENDING',
+          latitude: row.incidents?.latitude || 0,
+          longitude: row.incidents?.longitude || 0,
+          citizen_name: 'Citizen', // Mocked or fetch from profiles if joined
+          created_at: row.created_at
+        }));
+      }
     }
     const qs = params ? '?' + new URLSearchParams(params as any).toString() : '';
     return resilientCall(

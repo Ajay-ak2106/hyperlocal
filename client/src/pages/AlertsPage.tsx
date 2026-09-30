@@ -9,17 +9,29 @@ export const AlertsPage: React.FC = () => {
   const { lastRealtimeEvent } = useRealtime();
 
   useEffect(() => {
-    api.getAlerts().then(data => {
-      // Map supabase DB fields to the format AlertsPage expects
-      const mapped = data.map((alert: any) => ({
+    Promise.all([api.getAlerts(), api.getIncidents()]).then(([alertsData, incidentsData]) => {
+      const mappedAlerts = alertsData.map((alert: any) => ({
         id: alert.id,
         type: 'Alert', 
         title: alert.title,
         location: alert.area,
         level: alert.severity === 'critical' ? 'CRITICAL' : alert.severity === 'warning' ? 'HIGH' : 'MODERATE',
-        time: new Date(alert.created_at).toLocaleTimeString()
+        time: new Date(alert.created_at).toLocaleTimeString(),
+        timestamp: new Date(alert.created_at).getTime()
       }));
-      setActiveAlerts(mapped);
+
+      const mappedIncidents = incidentsData.map((inc: any) => ({
+        id: inc.id,
+        type: 'Incident',
+        title: `Reported Incident: ${inc.type.toUpperCase().replace('_', ' ')}`,
+        location: inc.address,
+        level: inc.severity === 'critical' ? 'CRITICAL' : inc.severity === 'high' ? 'HIGH' : 'MODERATE',
+        time: new Date(inc.created_at).toLocaleTimeString(),
+        timestamp: new Date(inc.created_at).getTime()
+      }));
+
+      const combined = [...mappedAlerts, ...mappedIncidents].sort((a, b) => b.timestamp - a.timestamp);
+      setActiveAlerts(combined);
     }).catch(err => console.error(err));
   }, [lastRealtimeEvent]);
 
