@@ -13,7 +13,8 @@ import {
   Menu,
   X,
   MapPin,
-  Heart
+  Heart,
+  LifeBuoy
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext.js';
 
@@ -27,7 +28,7 @@ export const Sidebar: React.FC = () => {
     { to: '/alerts', label: 'Alerts', icon: Bell },
     { to: '/fund', label: 'Donate Funds', icon: Heart },
     { to: '/shelters', label: 'Shelters', icon: ShelterIcon },
-    { to: '/report', label: 'Report Incident', icon: AlertTriangle },
+    { to: '/help', label: 'Rescue Hub', icon: LifeBuoy },
     { to: '/resources', label: 'Resources', icon: BookOpen },
     { to: '/community', label: 'Community', icon: Users },
     { to: '/profile', label: 'Settings', icon: Settings },
