@@ -99,9 +99,15 @@ export const api = {
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
 
+      let mappedType = 'other';
+      const inputType = payload.type?.toLowerCase() || '';
+      if (['flood', 'cyclone', 'fire', 'medical'].includes(inputType)) {
+        mappedType = inputType;
+      }
+
       const dbPayload: any = {
         reporter_id: user?.id || null,
-        type: payload.type?.toLowerCase() || 'other',
+        type: mappedType,
         severity: payload.severity?.toLowerCase() || 'medium',
         description: payload.description || '',
         latitude: payload.latitude || 0,
@@ -190,10 +196,16 @@ export const api = {
         throw incidentRes.error;
       }
 
+      let mappedNeedType = 'other';
+      const inputNeedType = payload.category?.toLowerCase() || '';
+      if (['food', 'water', 'boat', 'medical', 'shelter'].includes(inputNeedType)) {
+        mappedNeedType = inputNeedType;
+      }
+
       const dbPayload = {
         requester_id: user?.id || null,
         incident_id: incidentRes.data.id,
-        need_type: payload.category?.toLowerCase() || 'other',
+        need_type: mappedNeedType,
         status: 'pending',
       };
       const { data, error } = await supabase.from('aid_requests').insert(dbPayload).select().single();
