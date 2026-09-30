@@ -76,13 +76,13 @@ export const HelpPage: React.FC = () => {
   return (
     <div className="pb-24 pt-3 px-3 sm:px-6 max-w-5xl mx-auto space-y-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900 border border-slate-700 p-5 rounded-2xl shadow-lg">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/80 backdrop-blur-md border border-slate-700 p-5 rounded-2xl shadow-lg">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">
             <span>🚨</span>
             {language === 'ta' ? 'அவசர உதவி கோரிக்கைகள்' : 'Emergency Help & Rescue'}
           </h1>
-          <p className="text-xs text-slate-300 mt-1">
+          <p className="text-xs text-slate-600 mt-1">
             {language === 'ta'
               ? 'பொதுமக்கள் விடுத்த அவசர உதவி கோரிக்கைகள் மற்றும் மீட்பு பணிகள்.'
               : 'Live citizen assistance requests and volunteer response coordination.'}
@@ -91,7 +91,7 @@ export const HelpPage: React.FC = () => {
 
         <button
           onClick={() => setShowRequestModal(true)}
-          className="py-2.5 px-4 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
+          className="py-2.5 px-4 rounded-xl bg-red-600 hover:bg-red-500 text-slate-800 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
         >
           <Plus className="w-4 h-4" />
           <span>{language === 'ta' ? '+ உதவி கோரல்' : '+ Request Help (SOS)'}</span>
@@ -99,13 +99,13 @@ export const HelpPage: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 p-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs">
+      <div className="flex items-center gap-2 p-1.5 rounded-xl bg-white/80 backdrop-blur-md border border-slate-700 text-xs">
         <button
           onClick={() => setActiveTab('MY_REQUESTS')}
           className={`flex-1 py-2 rounded-lg font-semibold transition-all ${
             activeTab === 'MY_REQUESTS'
-              ? 'bg-emerald-600 text-white shadow-sm'
-              : 'text-slate-300 hover:text-white'
+              ? 'bg-emerald-600 text-slate-800 shadow-sm'
+              : 'text-slate-600 hover:text-slate-800'
           }`}
         >
           {language === 'ta' ? 'எனது கோரிக்கைகள்' : 'My Requests'} ({myRequests.length})
@@ -114,8 +114,8 @@ export const HelpPage: React.FC = () => {
           onClick={() => setActiveTab('ALL_REQUESTS')}
           className={`flex-1 py-2 rounded-lg font-semibold transition-all ${
             activeTab === 'ALL_REQUESTS'
-              ? 'bg-emerald-600 text-white shadow-sm'
-              : 'text-slate-300 hover:text-white'
+              ? 'bg-emerald-600 text-slate-800 shadow-sm'
+              : 'text-slate-600 hover:text-slate-800'
           }`}
         >
           {language === 'ta' ? 'அனைத்து கோரிக்கைகள்' : 'All Requests'} ({requests.length})
@@ -125,15 +125,15 @@ export const HelpPage: React.FC = () => {
       {/* Requests List */}
       <div className="space-y-3">
         {loading && requests.length === 0 ? (
-          <div className="py-12 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
+          <div className="py-12 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
             <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
             Loading requests...
           </div>
         ) : displayedRequests.length === 0 ? (
-          <div className="p-12 rounded-2xl bg-slate-800/80 border border-slate-700 text-center">
+          <div className="p-12 rounded-2xl bg-slate-100/80 border border-slate-700 text-center">
             <LifeBuoy className="w-10 h-10 text-slate-600 mx-auto mb-2" />
-            <h3 className="text-sm font-bold text-white">No Active Requests</h3>
-            <p className="text-xs text-slate-400 mt-1">
+            <h3 className="text-sm font-bold text-slate-800">No Active Requests</h3>
+            <p className="text-xs text-slate-500 mt-1">
               {activeTab === 'MY_REQUESTS'
                 ? 'You have not submitted any emergency help requests.'
                 : 'All area requests have been attended to.'}
@@ -151,18 +151,18 @@ export const HelpPage: React.FC = () => {
               ACCEPTED: 'bg-sky-950/70 text-sky-300 border-sky-500/40',
               IN_PROGRESS: 'bg-blue-950/70 text-blue-300 border-blue-500/40',
               COMPLETED: 'bg-emerald-950/70 text-emerald-300 border-emerald-500/40',
-              CANCELLED: 'bg-slate-800 text-slate-400 border-slate-700'
+              CANCELLED: 'bg-slate-100 text-slate-500 border-slate-700'
             };
 
             return (
               <div
                 key={req.id}
-                className="p-5 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-slate-600 transition-all shadow-sm space-y-3"
+                className="p-5 rounded-2xl bg-slate-100/80 border border-slate-700 hover:border-slate-600 transition-all shadow-sm space-y-3"
               >
                 {/* Top Row */}
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-bold text-white flex items-center gap-1.5">
+                    <span className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
                       <span>🚨</span>
                       {req.category}
                     </span>
@@ -171,27 +171,27 @@ export const HelpPage: React.FC = () => {
                         ? 'bg-red-900/60 text-red-200'
                         : req.severity === 'HIGH'
                         ? 'bg-amber-900/60 text-amber-200'
-                        : 'bg-slate-700 text-slate-200'
+                        : 'bg-slate-700 text-slate-700'
                     }`}>
                       {req.severity}
                     </span>
-                    <span className="text-xs text-slate-400">📍 {req.area}</span>
+                    <span className="text-xs text-slate-500">📍 {req.area}</span>
                   </div>
 
-                  <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${statusColors[req.status] || 'bg-slate-800'}`}>
+                  <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${statusColors[req.status] || 'bg-slate-100'}`}>
                     {req.status.replace(/_/g, ' ')}
                   </span>
                 </div>
 
                 {/* Description */}
-                <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
                   {req.description}
                 </p>
 
                 {/* Contact info */}
                 <div className="pt-2 border-t border-slate-700 flex flex-wrap items-center justify-between gap-2 text-xs">
-                  <div className="text-slate-300">
-                    <span>Contact: <strong className="text-white">{req.citizen_name}</strong></span>
+                  <div className="text-slate-600">
+                    <span>Contact: <strong className="text-slate-800">{req.citizen_name}</strong></span>
                     {req.citizen_phone && (
                       <a href={`tel:${req.citizen_phone}`} className="ml-2 text-sky-400 hover:underline">
                         📞 {req.citizen_phone}
@@ -200,9 +200,9 @@ export const HelpPage: React.FC = () => {
                   </div>
 
                   {req.assigned_volunteer_name && (
-                    <div className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-emerald-400 text-xs flex items-center gap-1.5">
+                    <div className="px-2.5 py-1 rounded-lg bg-white/80 backdrop-blur-md border border-slate-700 text-emerald-400 text-xs flex items-center gap-1.5">
                       <UserCheck className="w-3.5 h-3.5" />
-                      <span>Volunteer: <strong className="text-white">{req.assigned_volunteer_name}</strong></span>
+                      <span>Volunteer: <strong className="text-slate-800">{req.assigned_volunteer_name}</strong></span>
                     </div>
                   )}
                 </div>
@@ -213,7 +213,7 @@ export const HelpPage: React.FC = () => {
                     <button
                       disabled={actionLoadingId === req.id}
                       onClick={() => handleAcceptRequest(req.id)}
-                      className="py-1.5 px-3.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold flex items-center gap-1.5 transition-all"
+                      className="py-1.5 px-3.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-slate-800 font-semibold flex items-center gap-1.5 transition-all"
                     >
                       <UserCheck className="w-3.5 h-3.5" />
                       <span>I Will Help (Accept)</span>
@@ -224,7 +224,7 @@ export const HelpPage: React.FC = () => {
                     <button
                       disabled={actionLoadingId === req.id}
                       onClick={() => handleUpdateStatus(req.id, 'IN_PROGRESS')}
-                      className="py-1.5 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold flex items-center gap-1.5 transition-all"
+                      className="py-1.5 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-slate-800 font-semibold flex items-center gap-1.5 transition-all"
                     >
                       <PlayCircle className="w-3.5 h-3.5" />
                       <span>Help En Route</span>
@@ -235,7 +235,7 @@ export const HelpPage: React.FC = () => {
                     <button
                       disabled={actionLoadingId === req.id}
                       onClick={() => handleUpdateStatus(req.id, 'COMPLETED')}
-                      className="py-1.5 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold flex items-center gap-1.5 transition-all"
+                      className="py-1.5 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-800 font-semibold flex items-center gap-1.5 transition-all"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       <span>Mark Resolved</span>

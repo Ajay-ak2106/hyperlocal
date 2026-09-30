@@ -56,13 +56,13 @@ export const ProfilePage: React.FC = () => {
   return (
     <div className="pb-24 pt-3 px-3 sm:px-6 max-w-4xl mx-auto space-y-5">
       {/* Title */}
-      <div className="bg-slate-900 border border-slate-700 p-5 rounded-2xl shadow-lg flex items-center justify-between">
+      <div className="bg-white/80 backdrop-blur-md border border-slate-700 p-5 rounded-2xl shadow-lg flex items-center justify-between">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">
             <User className="w-6 h-6 text-emerald-400" />
             {language === 'ta' ? 'சுயவிவரம் & அமைப்புகள்' : 'Profile & Settings'}
           </h1>
-          <p className="text-xs text-slate-300 mt-1">
+          <p className="text-xs text-slate-600 mt-1">
             {language === 'ta'
               ? 'உங்கள் பெயர், தொடர்பு எண் மற்றும் வசிக்கும் பகுதியை இங்கு மாற்றிக் கொள்ளலாம்.'
               : 'Update your name, contact details, locality, and disaster language preferences.'}
@@ -71,18 +71,18 @@ export const ProfilePage: React.FC = () => {
 
         <div className="text-right hidden sm:block">
           <span className="text-xs font-bold text-emerald-400 block">{profile?.name || name}</span>
-          <span className="text-[11px] text-slate-400 block">📍 {profile?.area || area}</span>
+          <span className="text-[11px] text-slate-500 block">📍 {profile?.area || area}</span>
         </div>
       </div>
 
       {/* Edit Profile Form */}
-      <form onSubmit={handleSaveProfile} className="p-6 rounded-2xl bg-slate-800/80 border border-slate-700 shadow-sm space-y-4">
+      <form onSubmit={handleSaveProfile} className="p-6 rounded-2xl bg-slate-100/80 border border-slate-700 shadow-sm space-y-4">
         <div className="flex items-center justify-between pb-2 border-b border-slate-700/60">
-          <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+          <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
             <MapPin className="w-4 h-4 text-emerald-400" />
             <span>{language === 'ta' ? 'தனிநபர் விவரங்கள் & பகுதி' : 'Personal Details & Location'}</span>
           </h2>
-          <span className="text-[11px] text-slate-400">
+          <span className="text-[11px] text-slate-500">
             {language === 'ta' ? 'உடனடி சேமிப்பு' : 'Live Saved'}
           </span>
         </div>
@@ -90,7 +90,7 @@ export const ProfilePage: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Full Name */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-slate-600 mb-1">
               {language === 'ta' ? 'முழுப் பெயர்' : 'Full Name'}
             </label>
             <input
@@ -99,13 +99,13 @@ export const ProfilePage: React.FC = () => {
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Vishwa / Kavitha"
               required
-              className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-xs text-white focus:border-emerald-500 outline-none transition-colors"
+              className="w-full rounded-xl bg-white/80 backdrop-blur-md border border-slate-700 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 outline-none transition-colors"
             />
           </div>
 
           {/* Phone Number */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-slate-600 mb-1">
               {language === 'ta' ? 'கைபேசி எண்' : 'Phone Number'}
             </label>
             <input
@@ -114,13 +114,13 @@ export const ProfilePage: React.FC = () => {
               onChange={(e) => setMobile(e.target.value)}
               placeholder="e.g. +91 98765 43210"
               required
-              className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-xs text-white focus:border-emerald-500 outline-none transition-colors"
+              className="w-full rounded-xl bg-white/80 backdrop-blur-md border border-slate-700 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 outline-none transition-colors"
             />
           </div>
 
           {/* Locality / Ward (Selection & Custom) */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-slate-600 mb-1">
               {language === 'ta' ? 'முதன்மை பகுதி / வட்டம்' : 'Main Locality / Area'}
             </label>
             <select
@@ -130,7 +130,7 @@ export const ProfilePage: React.FC = () => {
                   setArea(e.target.value);
                 }
               }}
-              className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-xs text-white focus:border-emerald-500 outline-none transition-colors mb-2"
+              className="w-full rounded-xl bg-white/80 backdrop-blur-md border border-slate-700 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 outline-none transition-colors mb-2"
             >
               {CHENNAI_AREAS.map((a) => (
                 <option key={a.name} value={a.name}>
@@ -146,19 +146,19 @@ export const ProfilePage: React.FC = () => {
               onChange={(e) => setArea(e.target.value)}
               placeholder={language === 'ta' ? 'பகுதி பெயரை உள்ளிடவும்...' : 'Enter your area name...'}
               required
-              className="w-full rounded-xl bg-slate-900/90 border border-slate-700/80 px-3.5 py-2 text-xs text-slate-200 focus:border-emerald-500 outline-none"
+              className="w-full rounded-xl bg-white/80 backdrop-blur-md/90 border border-slate-700/80 px-3.5 py-2 text-xs text-slate-700 focus:border-emerald-500 outline-none"
             />
           </div>
 
           {/* Preferred Language */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-slate-600 mb-1">
               {language === 'ta' ? 'விருப்பமான மொழி' : 'Preferred Language'}
             </label>
             <select
               value={prefLang}
               onChange={(e: any) => setPrefLang(e.target.value)}
-              className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-xs text-white focus:border-emerald-500 outline-none transition-colors"
+              className="w-full rounded-xl bg-white/80 backdrop-blur-md border border-slate-700 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 outline-none transition-colors"
             >
               <option value="ta">தமிழ் (Tamil)</option>
               <option value="en">English</option>
@@ -181,7 +181,7 @@ export const ProfilePage: React.FC = () => {
           <button
             type="submit"
             disabled={saving}
-            className="w-full sm:w-auto py-3 px-8 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-md active:scale-95 transition-all flex items-center justify-center gap-2"
+            className="w-full sm:w-auto py-3 px-8 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-800 font-bold text-xs sm:text-sm shadow-md active:scale-95 transition-all flex items-center justify-center gap-2"
           >
             {saving ? (
               <span>{language === 'ta' ? 'சேமிக்கப்படுகிறது...' : 'Saving...'}</span>
@@ -196,13 +196,13 @@ export const ProfilePage: React.FC = () => {
       </form>
 
       {/* Role Switcher Section */}
-      <div className="p-5 rounded-2xl bg-slate-800/80 border border-slate-700 shadow-sm space-y-3">
+      <div className="p-5 rounded-2xl bg-slate-100/80 border border-slate-700 shadow-sm space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+          <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
             <Key className="w-4 h-4 text-emerald-400" />
             <span>Switch Role (Test Demonstration)</span>
           </h2>
-          <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-900 text-emerald-300 border border-slate-700">
+          <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/80 backdrop-blur-md text-emerald-300 border border-slate-700">
             Current: {role}
           </span>
         </div>
@@ -216,14 +216,14 @@ export const ProfilePage: React.FC = () => {
                 key={acc.role}
                 className={`p-4 rounded-xl border transition-all ${
                   isCurrent
-                    ? 'bg-slate-900 border-emerald-500 shadow-sm'
-                    : 'bg-slate-900/60 border-slate-700 hover:border-slate-600'
+                    ? 'bg-white/80 backdrop-blur-md border-emerald-500 shadow-sm'
+                    : 'bg-white/80 backdrop-blur-md/60 border-slate-700 hover:border-slate-600'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-2">
                     <Icon className={`w-4 h-4 ${acc.color}`} />
-                    <span className="text-xs font-bold uppercase text-white">
+                    <span className="text-xs font-bold uppercase text-slate-800">
                       {acc.role.replace(/_/g, ' ')}
                     </span>
                   </div>
@@ -234,14 +234,14 @@ export const ProfilePage: React.FC = () => {
                   )}
                 </div>
 
-                <div className="text-xs font-semibold text-white">{acc.name}</div>
-                <div className="text-[11px] text-slate-400">{acc.email}</div>
-                <p className="text-[11px] text-slate-300 mt-1">{acc.desc}</p>
+                <div className="text-xs font-semibold text-slate-800">{acc.name}</div>
+                <div className="text-[11px] text-slate-500">{acc.email}</div>
+                <p className="text-[11px] text-slate-600 mt-1">{acc.desc}</p>
 
                 {!isCurrent && (
                   <button
                     onClick={() => switchDemoRole(acc.role)}
-                    className="mt-3 w-full py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 hover:text-white border border-slate-700 text-xs font-semibold text-slate-200 transition-colors active:scale-95"
+                    className="mt-3 w-full py-1.5 rounded-lg bg-slate-100 hover:bg-emerald-600 hover:text-slate-800 border border-slate-700 text-xs font-semibold text-slate-700 transition-colors active:scale-95"
                   >
                     Switch to this role
                   </button>

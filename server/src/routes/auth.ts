@@ -173,12 +173,13 @@ router.put('/profile', (req: Request, res: Response) => {
         preferred_language = COALESCE(?, preferred_language),
         updated_at = ?
        WHERE id = ?`,
-      [name, mobile_number, area, city, district, preferred_language, now, user_id]
+      [name ?? null, mobile_number ?? null, area ?? null, city ?? null, district ?? null, preferred_language ?? null, now, user_id]
     );
 
     const updatedProfile = queryOne('SELECT * FROM profiles WHERE id = ?', [user_id]);
     res.json({ success: true, data: updatedProfile });
   } catch (err: any) {
+    console.error('Error updating profile:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 });

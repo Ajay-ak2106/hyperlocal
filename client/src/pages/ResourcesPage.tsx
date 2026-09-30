@@ -98,13 +98,13 @@ export const ResourcesPage: React.FC = () => {
 
   return (
     <div className="pb-24 pt-3 px-3 sm:px-6 max-w-5xl mx-auto space-y-4">
-      <div className="bg-slate-900 border border-slate-700 p-5 rounded-2xl shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white/80 backdrop-blur-md border border-slate-700 p-5 rounded-2xl shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">
             <span>📦</span>
             {language === 'ta' ? 'அத்தியாவசியப் பொருட்கள் & உணவு' : 'Emergency Supplies & Food'}
           </h1>
-          <p className="text-xs text-slate-300 mt-1 max-w-xl">
+          <p className="text-xs text-slate-600 mt-1 max-w-xl">
             {language === 'ta'
               ? 'உணவு பொட்டலங்கள், குடிநீர், படகுகள் மற்றும் அத்தியாவசிய பொருட்கள்.'
               : 'Community-contributed food packets, potable water, rescue boats, and supplies.'}
@@ -113,7 +113,7 @@ export const ResourcesPage: React.FC = () => {
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
+          className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-800 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
         >
           <Plus className="w-4 h-4" />
           <span>{language === 'ta' ? '+ பொருட்கள் வழங்க' : '+ Offer Supplies'}</span>
@@ -128,8 +128,8 @@ export const ResourcesPage: React.FC = () => {
             onClick={() => setFilter(c)}
             className={`px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap border ${
               filter === c
-                ? 'bg-sky-600 text-white border-sky-500'
-                : 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700'
+                ? 'bg-sky-600 text-slate-800 border-sky-500'
+                : 'bg-slate-100/80 text-slate-600 border-slate-700 hover:bg-slate-700'
             }`}
           >
             {c.replace(/_/g, ' ')}
@@ -142,34 +142,34 @@ export const ResourcesPage: React.FC = () => {
         {filtered.map((res) => (
           <div
             key={res.id}
-            className="p-5 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-slate-600 transition-all shadow-sm flex flex-col justify-between space-y-3"
+            className="p-5 rounded-2xl bg-slate-100/80 border border-slate-700 hover:border-slate-600 transition-all shadow-sm flex flex-col justify-between space-y-3"
           >
             <div>
               <div className="flex items-start justify-between gap-2 mb-1">
-                <span className="text-[11px] font-bold uppercase px-2 py-0.5 rounded-md bg-slate-900 text-sky-300 border border-slate-700">
+                <span className="text-[11px] font-bold uppercase px-2 py-0.5 rounded-md bg-white/80 backdrop-blur-md text-sky-300 border border-slate-700">
                   {res.category.replace(/_/g, ' ')}
                 </span>
-                <span className="text-xs text-slate-400">📍 {res.area}</span>
+                <span className="text-xs text-slate-500">📍 {res.area}</span>
               </div>
 
-              <h3 className="text-base font-bold text-white mt-1">{res.name}</h3>
+              <h3 className="text-base font-bold text-slate-800 mt-1">{res.name}</h3>
 
-              <div className="mt-2.5 p-3 rounded-xl bg-slate-900 border border-slate-700/80 flex items-center justify-between">
-                <span className="text-xs text-slate-400">Available Quantity:</span>
+              <div className="mt-2.5 p-3 rounded-xl bg-white/80 backdrop-blur-md border border-slate-700/80 flex items-center justify-between">
+                <span className="text-xs text-slate-500">Available Quantity:</span>
                 <span className="text-base font-bold text-emerald-400">
                   {res.quantity} {res.unit}
                 </span>
               </div>
 
-              <p className="text-xs text-slate-300 mt-2">
-                Provided by: <strong className="text-white">{res.provider_name}</strong>
+              <p className="text-xs text-slate-600 mt-2">
+                Provided by: <strong className="text-slate-800">{res.provider_name}</strong>
               </p>
             </div>
 
             <div className="pt-2 border-t border-slate-700 flex items-center justify-between gap-2">
               <a
                 href={`tel:${res.provider_phone}`}
-                className="py-2 px-3 rounded-xl bg-slate-900 border border-slate-700 hover:bg-slate-700 text-sky-400 font-semibold text-xs flex items-center gap-1.5 transition-colors"
+                className="py-2 px-3 rounded-xl bg-white/80 backdrop-blur-md border border-slate-700 hover:bg-slate-700 text-sky-400 font-semibold text-xs flex items-center gap-1.5 transition-colors"
               >
                 <PhoneCall className="w-3.5 h-3.5" />
                 <span>Call Provider</span>
@@ -178,7 +178,7 @@ export const ResourcesPage: React.FC = () => {
               <button
                 onClick={() => handleDistribute(res.id, res.quantity)}
                 disabled={res.quantity <= 0}
-                className="py-2 px-3 rounded-xl bg-slate-900 border border-slate-700 hover:bg-slate-700 text-slate-200 text-xs font-semibold active:scale-95 disabled:opacity-30 transition-colors"
+                className="py-2 px-3 rounded-xl bg-white/80 backdrop-blur-md border border-slate-700 hover:bg-slate-700 text-slate-700 text-xs font-semibold active:scale-95 disabled:opacity-30 transition-colors"
               >
                 Distribute 10
               </button>
@@ -190,15 +190,15 @@ export const ResourcesPage: React.FC = () => {
       {/* Add Resource Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-2xl bg-slate-900 border border-slate-700 p-6 shadow-2xl relative">
-            <div className="flex justify-between items-center pb-3 border-b border-slate-800 mb-4">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+          <div className="w-full max-w-md rounded-2xl bg-white/80 backdrop-blur-md border border-slate-700 p-6 shadow-2xl relative">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-200 mb-4">
+              <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
                 <Package className="w-4 h-4 text-emerald-400" />
                 {language === 'ta' ? 'புதிய பொருட்கள் வழங்கல்' : 'Offer Relief Supplies'}
               </h3>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white"
+                className="p-1 rounded-lg text-slate-500 hover:text-slate-800"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -206,24 +206,24 @@ export const ResourcesPage: React.FC = () => {
 
             <form onSubmit={handleCreateResource} className="space-y-3 text-xs">
               <div>
-                <label className="block font-semibold text-slate-300 mb-1">Item Name</label>
+                <label className="block font-semibold text-slate-600 mb-1">Item Name</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. 500 Food Packets (Veg Biryani)"
                   value={itemName}
                   onChange={(e) => setItemName(e.target.value)}
-                  className="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-white focus:border-emerald-500 outline-none"
+                  className="w-full rounded-xl bg-slate-100 border border-slate-700 px-3 py-2 text-slate-800 focus:border-emerald-500 outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Category</label>
+                  <label className="block font-semibold text-slate-600 mb-1">Category</label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-white outline-none"
+                    className="w-full rounded-xl bg-slate-100 border border-slate-700 px-3 py-2 text-slate-800 outline-none"
                   >
                     <option value="FOOD">Food</option>
                     <option value="WATER">Water</option>
@@ -234,39 +234,39 @@ export const ResourcesPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Quantity</label>
+                  <label className="block font-semibold text-slate-600 mb-1">Quantity</label>
                   <input
                     type="number"
                     value={quantity}
                     onChange={(e) => setQuantity(Number(e.target.value))}
-                    className="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-white outline-none"
+                    className="w-full rounded-xl bg-slate-100 border border-slate-700 px-3 py-2 text-slate-800 outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-300 mb-1">Provider / Organization Name</label>
+                <label className="block font-semibold text-slate-600 mb-1">Provider / Organization Name</label>
                 <input
                   type="text"
                   value={providerName}
                   onChange={(e) => setProviderName(e.target.value)}
-                  className="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-white outline-none"
+                  className="w-full rounded-xl bg-slate-100 border border-slate-700 px-3 py-2 text-slate-800 outline-none"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-300 mb-1">Contact Phone</label>
+                <label className="block font-semibold text-slate-600 mb-1">Contact Phone</label>
                 <input
                   type="tel"
                   value={providerPhone}
                   onChange={(e) => setProviderPhone(e.target.value)}
-                  className="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-white outline-none"
+                  className="w-full rounded-xl bg-slate-100 border border-slate-700 px-3 py-2 text-slate-800 outline-none"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full mt-2 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-md transition-all active:scale-98"
+                className="w-full mt-2 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-800 font-bold text-sm shadow-md transition-all active:scale-98"
               >
                 Submit Supply Offer
               </button>

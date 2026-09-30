@@ -1,127 +1,107 @@
 import React, { useState } from 'react';
 import { IncidentMap } from '../components/map/IncidentMap.js';
 import { Incident } from '../types/index.js';
-import { Waves, LifeBuoy, AlertTriangle, PhoneCall, X } from 'lucide-react';
-import { RequestHelpModal } from '../components/modals/RequestHelpModal.js';
-import { ReportFloodModal } from '../components/modals/ReportFloodModal.js';
-import { ReportIncidentModal } from '../components/modals/ReportIncidentModal.js';
+import { AlertTriangle, Home as ShelterIcon, Navigation, Info, Search } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext.js';
 
 export const MapPage: React.FC = () => {
   const { language } = useAuth();
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
-  const [showHelpModal, setShowHelpModal] = useState(false);
-  const [showFloodModal, setShowFloodModal] = useState(false);
-  const [showIncidentModal, setShowIncidentModal] = useState(false);
+
+  // Mock data for the sidebar to match the UI image
+  const activeAlerts = [
+    { id: 1, title: 'Flood Risk Area', location: 'Adyar, Chennai', time: '2h ago', level: 'High Risk', type: 'flood' },
+    { id: 2, title: 'Landslide Risk', location: 'Valparai, Coimbatore', time: '4h ago', level: 'Medium Risk', type: 'landslide' },
+    { id: 3, title: 'Heavy Rainfall', location: 'Tiruvallur, Chennai', time: '5h ago', level: 'Moderate', type: 'rain' },
+    { id: 4, title: 'Road Blocked', location: 'OMR Road, Chennai', time: '5h ago', level: 'Blocked', type: 'road' }
+  ];
+
+  const nearbyShelters = [
+    { id: 1, name: 'Government High School', dist: '1.2 km', open: true },
+    { id: 2, name: 'Community Hall', dist: '2.8 km', open: true },
+  ];
 
   return (
-    <div className="pb-20 pt-2 px-2 sm:px-6 max-w-7xl mx-auto space-y-3">
-      {/* Accessible Natural Map Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-700/70 pb-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-            <span>🌐</span>
-            {language === 'ta' ? 'நேரலை பேரிடர் வரைபடம்' : 'Live Disaster & Relief Map'}
-          </h1>
-          <p className="text-xs text-slate-300">
-            {language === 'ta'
-              ? 'வெள்ள நிலவரம், நிவாரண பாதைகள் மற்றும் முகாம்கள்.'
-              : 'Interactive map of flood zones, safe relief corridors, and shelters.'}
-          </p>
+    <div className="h-full flex flex-col xl:flex-row gap-6 p-2 sm:p-0">
+      
+      {/* Main Map Content */}
+      <div className="flex-1 flex flex-col min-h-[60vh] xl:min-h-0 bg-white/40 backdrop-blur-xl border-slate-200/50 rounded-3xl border overflow-hidden shadow-xl relative">
+        <div className="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur-md p-2 rounded-2xl flex gap-2 border border-slate-200/80 shadow-md">
+           <button className="px-4 py-1.5 rounded-xl bg-emerald-500 text-white text-xs font-bold shadow-sm">All</button>
+           <button className="px-4 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">Flood</button>
+           <button className="px-4 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">Landslide</button>
+           <button className="px-4 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">Fire</button>
+           <button className="px-4 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">Other</button>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap text-xs">
-          <button
-            onClick={() => setShowFloodModal(true)}
-            className="px-3 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all"
-          >
-            <Waves className="w-4 h-4" />
-            <span>{language === 'ta' ? 'வெள்ளம் பதிவு' : 'Report Flood'}</span>
-          </button>
-
-          <button
-            onClick={() => setShowIncidentModal(true)}
-            className="px-3 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all"
-          >
-            <AlertTriangle className="w-4 h-4" />
-            <span>{language === 'ta' ? 'விபத்து பதிவு' : 'Report Incident'}</span>
-          </button>
-
-          <button
-            onClick={() => setShowHelpModal(true)}
-            className="px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all"
-          >
-            <LifeBuoy className="w-4 h-4" />
-            <span>{language === 'ta' ? 'உதவி கேட்க' : 'Request Help (SOS)'}</span>
-          </button>
+        <IncidentMap
+          height="100%"
+          onSelectIncident={(inc) => setSelectedIncident(inc)}
+        />
+        
+        {/* Floating action buttons */}
+        <div className="absolute bottom-6 right-6 z-10 flex flex-col gap-2">
+           <button className="w-12 h-12 bg-white/90 backdrop-blur-md border border-slate-200 rounded-full flex items-center justify-center text-slate-600 hover:text-emerald-600 shadow-md transition-colors">
+             <Navigation size={20} />
+           </button>
+           <button className="w-12 h-12 bg-white/90 backdrop-blur-md border border-slate-200 rounded-full flex items-center justify-center text-slate-600 hover:text-emerald-600 shadow-md transition-colors">
+             <Info size={20} />
+           </button>
         </div>
       </div>
 
-      {/* Real Map Canvas with Generous Height */}
-      <IncidentMap
-        height="calc(100vh - 220px)"
-        onSelectIncident={(inc) => setSelectedIncident(inc)}
-      />
-
-      {/* Selected Incident Drawer / Card */}
-      {selectedIncident && (
-        <div className="fixed bottom-16 left-3 right-3 sm:left-auto sm:right-6 sm:bottom-6 z-50 sm:max-w-md w-full rounded-2xl bg-slate-900 border border-slate-700 p-5 shadow-2xl animate-in slide-in-from-bottom-4">
-          <div className="flex items-start justify-between gap-3 mb-2">
-            <div>
-              <span className={`text-[11px] font-bold uppercase px-2 py-0.5 rounded ${
-                selectedIncident.severity === 'CRITICAL'
-                  ? 'bg-red-900/60 text-red-200 border border-red-500/40'
-                  : 'bg-amber-900/60 text-amber-200 border border-amber-500/40'
-              }`}>
-                {selectedIncident.type} • {selectedIncident.severity}
-              </span>
-              <h3 className="text-base font-bold text-white mt-1">
-                {selectedIncident.area}
-              </h3>
-            </div>
-            <button
-              onClick={() => setSelectedIncident(null)}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-              aria-label="Close details"
-            >
-              <X className="w-5 h-5" />
-            </button>
+      {/* Right Sidebar Widget Area */}
+      <div className="w-full xl:w-96 flex flex-col gap-6 shrink-0">
+        
+        {/* Active Alerts Card */}
+        <div className="bg-white/70 backdrop-blur-xl border-slate-200/50 rounded-3xl border p-5 shadow-lg flex-1 max-h-[50vh] xl:max-h-none overflow-y-auto">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-slate-900 font-bold text-lg">Active Alerts</h3>
+            <button className="text-emerald-600 text-xs font-bold hover:underline">View All &rarr;</button>
           </div>
-
-          <p className="text-xs text-slate-300 leading-relaxed mb-3">
-            {selectedIncident.description}
-          </p>
-
-          <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800">
-            <span>Status: <strong className="text-emerald-400">{selectedIncident.status}</strong></span>
-            <span>Verified: <strong className="text-sky-400">{selectedIncident.verification_status}</strong></span>
+          
+          <div className="space-y-3">
+            {activeAlerts.map(alert => (
+              <div key={alert.id} className="flex gap-3 p-3 rounded-2xl bg-white/60 border border-slate-200/50 hover:bg-white shadow-sm transition-colors cursor-pointer">
+                 <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-red-50 text-red-500">
+                   <AlertTriangle size={18} />
+                 </div>
+                 <div className="flex-1 min-w-0">
+                   <h4 className="text-sm font-bold text-slate-800 truncate">{alert.title}</h4>
+                   <p className="text-xs text-slate-500 font-medium truncate">{alert.location}</p>
+                   <p className="text-[10px] text-slate-400 mt-1 font-semibold">{alert.level}</p>
+                 </div>
+                 <div className="text-[10px] font-bold text-slate-400 whitespace-nowrap">
+                   {alert.time}
+                 </div>
+              </div>
+            ))}
           </div>
-
-          {selectedIncident.reporter_phone && (
-            <a
-              href={`tel:${selectedIncident.reporter_phone}`}
-              className="mt-3 w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-400 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors border border-slate-700"
-            >
-              <PhoneCall className="w-3.5 h-3.5" />
-              <span>Call Reporter ({selectedIncident.reporter_phone})</span>
-            </a>
-          )}
         </div>
-      )}
 
-      {/* Modals */}
-      <RequestHelpModal
-        isOpen={showHelpModal}
-        onClose={() => setShowHelpModal(false)}
-      />
-      <ReportFloodModal
-        isOpen={showFloodModal}
-        onClose={() => setShowFloodModal(false)}
-      />
-      <ReportIncidentModal
-        isOpen={showIncidentModal}
-        onClose={() => setShowIncidentModal(false)}
-      />
+        {/* Nearby Shelters Card */}
+        <div className="bg-white/70 backdrop-blur-xl border-slate-200/50 rounded-3xl border p-5 shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-slate-900 font-bold text-lg">Nearby Shelters</h3>
+            <button className="text-emerald-600 text-xs font-bold hover:underline">View All &rarr;</button>
+          </div>
+          
+          <div className="space-y-3">
+             {nearbyShelters.map(shelter => (
+               <div key={shelter.id} className="flex gap-3 p-3 rounded-2xl bg-white/60 border border-slate-200/50 hover:bg-white shadow-sm transition-colors cursor-pointer">
+                 <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-emerald-50 text-emerald-600">
+                   <ShelterIcon size={18} />
+                 </div>
+                 <div className="flex-1 min-w-0">
+                   <h4 className="text-sm font-bold text-slate-800 truncate">{shelter.name}</h4>
+                   <p className="text-xs text-slate-500 font-medium truncate">{shelter.dist} • Open 24/7</p>
+                 </div>
+               </div>
+             ))}
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 };
