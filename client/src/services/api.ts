@@ -96,10 +96,20 @@ export const api = {
   },
   createIncident: async (payload: Partial<Incident>) => {
     if (supabase) {
-      const dbPayload: any = { ...payload };
-      if (!dbPayload.reporter_id) {
-        delete dbPayload.reporter_id;
-      }
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+
+      const dbPayload: any = {
+        reporter_id: user?.id || null,
+        type: payload.type?.toLowerCase() || 'other',
+        severity: payload.severity?.toLowerCase() || 'medium',
+        description: payload.description || '',
+        latitude: payload.latitude || 0,
+        longitude: payload.longitude || 0,
+        address: payload.area || '', // map area to address
+        photo_url: payload.photo_url || null,
+        status: 'reported'
+      };
       
       const { data, error } = await supabase.from('incidents').insert(dbPayload).select().single();
       if (error) {
@@ -159,10 +169,32 @@ export const api = {
   },
   createAssistanceRequest: async (payload: Partial<AssistanceRequest>) => {
     if (supabase) {
+      // Because the aid_requests schema requires an incident_id for location, 
+      // but the UI doesn't supply it, we will first create an incident, then link it!
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+
+      const incidentPayload = {
+        reporter_id: user?.id || null,
+        type: 'medical', // generic fallback type
+        severity: payload.severity?.toLowerCase() || 'high',
+        description: payload.description || 'Assistance Request',
+        latitude: payload.latitude || 0,
+        longitude: payload.longitude || 0,
+        address: payload.area || '',
+        status: 'reported'
+      };
+      const incidentRes = await supabase.from('incidents').insert(incidentPayload).select().single();
+      if (incidentRes.error) {
+        console.error('Failed to create parent incident for aid request:', incidentRes.error);
+        throw incidentRes.error;
+      }
+
       const dbPayload = {
-        requester_id: payload.citizen_id,
-        need_type: payload.category || 'other',
-        status: payload.status || 'pending',
+        requester_id: user?.id || null,
+        incident_id: incidentRes.data.id,
+        need_type: payload.category?.toLowerCase() || 'other',
+        status: 'pending',
       };
       const { data, error } = await supabase.from('aid_requests').insert(dbPayload).select().single();
       if (error) {
@@ -316,7 +348,11 @@ export const api = {
   },
   createAlert: async (payload: Partial<BroadcastAlert>) => {
     if (supabase) {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+
       const dbPayload = {
+        created_by: user?.id || null,
         title: payload.title,
         message: payload.description,
         area: payload.area,
