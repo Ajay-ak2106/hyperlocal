@@ -11,9 +11,11 @@ import {
   AppNotification,
   FundCampaign,
   EmergencyContact,
-  FloodReport
+  FloodReport,
+  BroadcastAlert
 } from '../types/index.js';
 import { localStore } from './localStore.js';
+import { supabase } from './supabase.js';
 
 const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -63,7 +65,16 @@ async function resilientCall<T>(
 
 export const api = {
   // Incidents
-  getIncidents: (params?: { status?: string; type?: string; area?: string }) => {
+  getIncidents: async (params?: { status?: string; type?: string; area?: string }) => {
+    if (supabase) {
+      let query = supabase.from('incidents').select('*');
+      if (params?.status) query = query.eq('status', params.status);
+      if (params?.type) query = query.eq('type', params.type);
+      if (params?.area) query = query.ilike('address', `%${params.area}%`);
+      const { data, error } = await query;
+      if (error) console.error('Supabase getIncidents Error:', error);
+      if (data) return data;
+    }
     const qs = params ? '?' + new URLSearchParams(params as any).toString() : '';
     return resilientCall(
       () => fetchJSON<Incident[]>(`/incidents${qs}`),
@@ -71,18 +82,38 @@ export const api = {
       'getIncidents'
     );
   },
-  getIncidentById: (id: string) =>
-    resilientCall(
+  getIncidentById: async (id: string) => {
+    if (supabase) {
+      const { data, error } = await supabase.from('incidents').select('*').eq('id', id).single();
+      if (error) console.error('Supabase getIncidentById Error:', error);
+      if (data) return data;
+    }
+    return resilientCall(
       () => fetchJSON<Incident>(`/incidents/${id}`),
       () => localStore.getIncidentById(id),
       'getIncidentById'
-    ),
-  createIncident: (payload: Partial<Incident>) =>
-    resilientCall(
+    );
+  },
+  createIncident: async (payload: Partial<Incident>) => {
+    if (supabase) {
+      const dbPayload: any = { ...payload };
+      if (!dbPayload.reporter_id) {
+        delete dbPayload.reporter_id;
+      }
+      
+      const { data, error } = await supabase.from('incidents').insert(dbPayload).select().single();
+      if (error) {
+        console.error('Supabase createIncident Error:', error);
+        throw error;
+      }
+      return data;
+    }
+    return resilientCall(
       () => fetchJSON<Incident>('/incidents', { method: 'POST', body: JSON.stringify(payload) }),
       () => localStore.createIncident(payload),
       'createIncident'
-    ),
+    );
+  },
   updateIncident: (id: string, payload: Partial<Incident>) =>
     resilientCall(
       () => fetchJSON<Incident>(`/incidents/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
@@ -109,7 +140,16 @@ export const api = {
     ),
 
   // Assistance Requests
-  getAssistanceRequests: (params?: { status?: string; category?: string; area?: string }) => {
+  getAssistanceRequests: async (params?: { status?: string; category?: string; area?: string }) => {
+    if (supabase) {
+      let query = supabase.from('aid_requests').select('*');
+      if (params?.status) query = query.eq('status', params.status);
+      if (params?.category) query = query.eq('need_type', params.category);
+      if (params?.area) query = query.ilike('area', `%${params.area}%`);
+      const { data, error } = await query;
+      if (error) console.error('Supabase getAssistanceRequests Error:', error);
+      if (data) return data;
+    }
     const qs = params ? '?' + new URLSearchParams(params as any).toString() : '';
     return resilientCall(
       () => fetchJSON<AssistanceRequest[]>(`/assistance${qs}`),
@@ -117,12 +157,26 @@ export const api = {
       'getAssistanceRequests'
     );
   },
-  createAssistanceRequest: (payload: Partial<AssistanceRequest>) =>
-    resilientCall(
+  createAssistanceRequest: async (payload: Partial<AssistanceRequest>) => {
+    if (supabase) {
+      const dbPayload = {
+        requester_id: payload.citizen_id,
+        need_type: payload.category || 'other',
+        status: payload.status || 'pending',
+      };
+      const { data, error } = await supabase.from('aid_requests').insert(dbPayload).select().single();
+      if (error) {
+        console.error('Supabase createAssistanceRequest Error:', error);
+        throw error;
+      }
+      return data;
+    }
+    return resilientCall(
       () => fetchJSON<AssistanceRequest>('/assistance', { method: 'POST', body: JSON.stringify(payload) }),
       () => localStore.createAssistanceRequest(payload),
       'createAssistanceRequest'
-    ),
+    );
+  },
   acceptAssistanceRequest: (
     id: string,
     payload: { volunteer_id: string; volunteer_name: string; volunteer_phone?: string }
@@ -250,6 +304,33 @@ export const api = {
       () => localStore.triggerSafetyPoll(payload),
       'triggerSafetyPoll'
     ),
+
+  // Alerts
+  getAlerts: async () => {
+    if (supabase) {
+      const { data, error } = await supabase.from('alerts').select('*').order('created_at', { ascending: false });
+      if (error) console.error('Supabase getAlerts Error:', error);
+      if (data) return data;
+    }
+    return [];
+  },
+  createAlert: async (payload: Partial<BroadcastAlert>) => {
+    if (supabase) {
+      const dbPayload = {
+        title: payload.title,
+        message: payload.description,
+        area: payload.area,
+        severity: payload.severity === 'EMERGENCY' ? 'critical' : payload.severity === 'WARNING' ? 'warning' : 'info'
+      };
+      const { data, error } = await supabase.from('alerts').insert(dbPayload).select().single();
+      if (error) {
+        console.error('Supabase createAlert Error:', error);
+        throw error;
+      }
+      return data;
+    }
+    return null;
+  },
 
   // Notifications
   getNotifications: (user_id?: string) => {

@@ -1,14 +1,24 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { AlertTriangle, MapPin, Clock } from 'lucide-react';
+import { api } from '../services/api.js';
 
 export const AlertsPage: React.FC = () => {
-  // Mock data for alerts
-  const activeAlerts = [
-    { id: 1, type: 'Flood', title: 'Severe Waterlogging', location: 'Velachery Main Road', level: 'CRITICAL', time: '10 min ago' },
-    { id: 2, type: 'Traffic', title: 'Road Blocked', location: 'GST Road, Guindy', level: 'HIGH', time: '25 min ago' },
-    { id: 3, type: 'Power', title: 'Power Cut', location: 'Adyar, Zone 13', level: 'MODERATE', time: '1 hr ago' },
-    { id: 4, type: 'Weather', title: 'Heavy Rainfall Warning', location: 'Chennai South', level: 'HIGH', time: '2 hrs ago' }
-  ];
+  const [activeAlerts, setActiveAlerts] = useState<any[]>([]);
+
+  useEffect(() => {
+    api.getAlerts().then(data => {
+      // Map supabase DB fields to the format AlertsPage expects
+      const mapped = data.map((alert: any) => ({
+        id: alert.id,
+        type: 'Alert', 
+        title: alert.title,
+        location: alert.area,
+        level: alert.severity === 'critical' ? 'CRITICAL' : alert.severity === 'warning' ? 'HIGH' : 'MODERATE',
+        time: new Date(alert.created_at).toLocaleTimeString()
+      }));
+      setActiveAlerts(mapped);
+    }).catch(err => console.error(err));
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
