@@ -174,7 +174,10 @@ export const api = {
           latitude: row.incidents?.latitude || 0,
           longitude: row.incidents?.longitude || 0,
           citizen_name: 'Citizen', // Mocked or fetch from profiles if joined
-          created_at: row.created_at
+          citizen_id: row.requester_id || 'user-1',
+          citizen_phone: '+91 9999999999',
+          created_at: row.created_at,
+          updated_at: row.updated_at || row.created_at
         }));
       }
     }
