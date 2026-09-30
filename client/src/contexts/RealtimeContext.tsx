@@ -3,6 +3,7 @@ import { realtimeService } from '../services/realtime.js';
 import { api } from '../services/api.js';
 import { AppNotification } from '../types/index.js';
 import { useAuth } from './AuthContext.js';
+import { supabase } from '../services/supabase.js';
 
 export interface ToastMessage {
   id: string;
@@ -59,8 +60,62 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  // Subscribe to real-time events from server WebSocket
+  // Subscribe to real-time events from server WebSocket or Supabase
   useEffect(() => {
+    let channels: any[] = [];
+
+    if (supabase) {
+      // Supabase Realtime
+      const incidentChannel = supabase.channel('public:incidents')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'incidents' }, (payload) => {
+          setLastRealtimeEvent(`INCIDENT_${payload.new?.id || payload.old?.id}_${Date.now()}`);
+          if (payload.eventType === 'INSERT') {
+            addToast(
+              `🚨 New Incident: ${payload.new.type}`,
+              `${payload.new.area}: ${payload.new.description}`,
+              'emergency'
+            );
+          } else if (payload.eventType === 'UPDATE') {
+            addToast(
+              `Incident Status Updated: ${payload.new.status}`,
+              `${payload.new.area} - Verification: ${payload.new.verification_status || 'updated'}`,
+              'info'
+            );
+          }
+        })
+        .subscribe();
+
+      const aidChannel = supabase.channel('public:aid_requests')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'aid_requests' }, (payload) => {
+          setLastRealtimeEvent(`AID_${payload.new?.id || payload.old?.id}_${Date.now()}`);
+          if (payload.eventType === 'INSERT') {
+            addToast(
+              `🆘 Help Needed: ${payload.new.need_type}`,
+              `${payload.new.category || 'Request'} in ${payload.new.area || 'Local'}`,
+              'emergency'
+            );
+          } else if (payload.eventType === 'UPDATE') {
+            let toastType: ToastMessage['type'] = 'info';
+            if (payload.new.status === 'assigned') toastType = 'success';
+            if (payload.new.status === 'completed') toastType = 'safety';
+            addToast(
+              `Assistance: ${payload.new.status}`,
+              `Area: ${payload.new.area || 'Local'}`,
+              toastType
+            );
+          }
+        })
+        .subscribe();
+
+      const alertsChannel = supabase.channel('public:alerts')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'alerts' }, (payload) => {
+          addToast(`⚠️ ALERT: ${payload.new.title}`, payload.new.message, 'emergency');
+        })
+        .subscribe();
+
+      channels = [incidentChannel, aidChannel, alertsChannel];
+    } else {
+      // Fallback local WebSockets
     // 1. Incident Insert
     const unsubInc = realtimeService.subscribe('INCIDENTS_INSERT', (payload) => {
       setLastRealtimeEvent(`INCIDENT_${payload.id}_${Date.now()}`);
@@ -164,7 +219,20 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     return () => {
       window.removeEventListener('namma-realtime', handleLocalEvent);
-      unsubInc();
+      if (supabase) {
+        channels.forEach(ch => supabase.removeChannel(ch));
+      } else {
+        unsubInc();
+        unsubIncUp();
+        unsubReq();
+        unsubReqUp();
+        unsubFlood();
+        unsubNotif();
+        unsubSafety();
+        unsubShelter();
+        unsubResource();
+        unsubPost();
+      }
       unsubIncUp();
       unsubReq();
       unsubReqUp();

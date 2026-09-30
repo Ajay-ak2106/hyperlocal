@@ -4,6 +4,7 @@ import { api } from '../services/api.js';
 import { ta } from '../translations/ta.js';
 import { en } from '../translations/en.js';
 import { getAreaLocation, findNearestArea, reverseGeocode } from '../constants/areas.js';
+import { supabase } from '../services/supabase.js';
 
 export type GpsStatus = 'idle' | 'locating' | 'active' | 'denied' | 'error';
 
@@ -27,6 +28,8 @@ interface AuthContextType {
   requestGps: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<any>;
+  sendOtp: (email: string) => Promise<void>;
+  verifyOtp: (email: string, token: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -50,31 +53,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Initialize from storage or defaults on launch
   useEffect(() => {
-    // 1. Check if user already exists in storage or session
+    // 1. Listen for Supabase Auth changes
+    if (supabase) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          handleAuthUser(session.user);
+        } else {
+          fallbackToLocal();
+        }
+      });
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session?.user) {
+          handleAuthUser(session.user);
+        } else {
+          fallbackToLocal();
+        }
+      });
+      
+      // Initial location setup
+      setupInitialLocation();
+      return () => subscription.unsubscribe();
+    } else {
+      fallbackToLocal();
+      setupInitialLocation();
+    }
+  }, []);
+
+  const handleAuthUser = async (authUser: any) => {
+    // Sync with backend API or local profile
+    try {
+      const res = await api.getMe(authUser.id);
+      if (res && res.profile) {
+        setUser({ id: authUser.id, email: authUser.email, role: res.profile.role || 'CITIZEN', created_at: authUser.created_at, updated_at: authUser.updated_at });
+        setProfile(res.profile);
+        setRole(res.profile.role || 'CITIZEN');
+      }
+    } catch (e) {
+      console.warn("Could not fetch user profile from DB", e);
+    }
+  };
+
+  const fallbackToLocal = () => {
     api.getMe().then((res) => {
       if (res && res.user && res.profile) {
         setUser(res.user);
         setProfile(res.profile);
         setVolunteer(res.volunteer || null);
         setRole(res.user.role || 'CITIZEN');
-        
-        const savedArea = localStorage.getItem('namma_selected_area') || res.profile.area;
-        if (savedArea) {
-          const loc = getAreaLocation(savedArea);
-          setCurrentAreaState(loc.name);
-          setCoords({ latitude: loc.latitude, longitude: loc.longitude });
-        }
-        if (res.profile.preferred_language) {
-          setLanguage(res.profile.preferred_language as Language);
-        }
       } else {
         switchDemoRole('CITIZEN');
       }
-    }).catch(() => {
-      switchDemoRole('CITIZEN');
-    });
+    }).catch(() => switchDemoRole('CITIZEN'));
+  };
 
-    // 2. Load saved area or attempt GPS
+  const setupInitialLocation = () => {
     const savedArea = localStorage.getItem('namma_selected_area');
     const savedGps = localStorage.getItem('namma_gps_coords');
     if (savedGps) {
@@ -84,9 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setCoords(parsed);
           setGpsActive(true);
           setGpsStatus('active');
-          if (savedArea) {
-            setCurrentAreaState(savedArea);
-          }
+          if (savedArea) setCurrentAreaState(savedArea);
           return;
         }
       } catch {}
@@ -99,7 +130,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } else {
       requestGps();
     }
-  }, []);
+  };
 
   const setCurrentArea = (area: string) => {
     const loc = getAreaLocation(area);
@@ -263,7 +294,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
-  const logout = () => {
+  const sendOtp = async (email: string) => {
+    if (supabase) {
+      const { error } = await supabase.auth.signInWithOtp({ email });
+      if (error) throw error;
+    }
+  };
+
+  const verifyOtp = async (email: string, token: string) => {
+    if (supabase) {
+      const { error } = await supabase.auth.verifyOtp({ email, token, type: 'email' });
+      if (error) throw error;
+    }
+  };
+
+  const logout = async () => {
+    if (supabase) await supabase.auth.signOut();
     switchDemoRole('CITIZEN');
   };
 
@@ -291,6 +337,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         requestGps,
         refreshProfile,
         updateProfile,
+        sendOtp,
+        verifyOtp,
         logout
       }}
     >
