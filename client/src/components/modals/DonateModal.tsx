@@ -36,6 +36,7 @@ export const DonateModal: React.FC<DonateModalProps> = ({ isOpen, onClose }) => 
   };
 
   const handleConfirmPayment = async () => {
+    if (!campaign) return;
     setLoading(true);
 
     try {
