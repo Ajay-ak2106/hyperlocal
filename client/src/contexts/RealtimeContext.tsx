@@ -63,11 +63,12 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Subscribe to real-time events from server WebSocket or Supabase
   useEffect(() => {
     let channels: any[] = [];
+    let unsubInc: any, unsubIncUp: any, unsubReq: any, unsubReqUp: any, unsubFlood: any, unsubNotif: any, unsubSafety: any, unsubShelter: any, unsubResource: any, unsubPost: any;
 
     if (supabase) {
       // Supabase Realtime
       const incidentChannel = supabase.channel('public:incidents')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'incidents' }, (payload) => {
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'incidents' }, (payload: any) => {
           setLastRealtimeEvent(`INCIDENT_${payload.new?.id || payload.old?.id}_${Date.now()}`);
           if (payload.eventType === 'INSERT') {
             addToast(
@@ -86,7 +87,7 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         .subscribe();
 
       const aidChannel = supabase.channel('public:aid_requests')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'aid_requests' }, (payload) => {
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'aid_requests' }, (payload: any) => {
           setLastRealtimeEvent(`AID_${payload.new?.id || payload.old?.id}_${Date.now()}`);
           if (payload.eventType === 'INSERT') {
             addToast(
@@ -108,7 +109,7 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         .subscribe();
 
       const alertsChannel = supabase.channel('public:alerts')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'alerts' }, (payload) => {
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'alerts' }, (payload: any) => {
           addToast(`⚠️ ALERT: ${payload.new.title}`, payload.new.message, 'emergency');
         })
         .subscribe();
@@ -117,7 +118,7 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } else {
       // Fallback local WebSockets
     // 1. Incident Insert
-    const unsubInc = realtimeService.subscribe('INCIDENTS_INSERT', (payload) => {
+    unsubInc = realtimeService.subscribe('INCIDENTS_INSERT', (payload) => {
       setLastRealtimeEvent(`INCIDENT_${payload.id}_${Date.now()}`);
       addToast(
         `🚨 New Incident: ${payload.type}`,
@@ -127,7 +128,7 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     });
 
     // 2. Incident Update
-    const unsubIncUp = realtimeService.subscribe('INCIDENTS_UPDATE', (payload) => {
+    unsubIncUp = realtimeService.subscribe('INCIDENTS_UPDATE', (payload) => {
       setLastRealtimeEvent(`INCIDENT_UPD_${payload.id}_${Date.now()}`);
       addToast(
         `Incident Status Updated: ${payload.status}`,
@@ -137,7 +138,7 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     });
 
     // 3. Assistance Request Insert
-    const unsubReq = realtimeService.subscribe('ASSISTANCE_REQUESTS_INSERT', (payload) => {
+    unsubReq = realtimeService.subscribe('ASSISTANCE_REQUESTS_INSERT', (payload) => {
       setLastRealtimeEvent(`ASSISTANCE_${payload.id}_${Date.now()}`);
       addToast(
         `🆘 Help Needed: ${payload.category}`,
@@ -147,7 +148,7 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     });
 
     // 4. Assistance Request Update (Volunteer Accept, In Progress, Completed)
-    const unsubReqUp = realtimeService.subscribe('ASSISTANCE_REQUESTS_UPDATE', (payload) => {
+    unsubReqUp = realtimeService.subscribe('ASSISTANCE_REQUESTS_UPDATE', (payload) => {
       setLastRealtimeEvent(`ASSISTANCE_UPD_${payload.id}_${Date.now()}`);
       let toastType: ToastMessage['type'] = 'info';
       if (payload.status === 'ACCEPTED') toastType = 'success';
@@ -161,7 +162,7 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     });
 
     // 5. Flood Report Insert
-    const unsubFlood = realtimeService.subscribe('FLOOD_REPORTS_INSERT', (payload) => {
+    unsubFlood = realtimeService.subscribe('FLOOD_REPORTS_INSERT', (payload) => {
       setLastRealtimeEvent(`FLOOD_${payload.id}_${Date.now()}`);
       addToast(
         `🌊 Flood Report: ${payload.area}`,
@@ -171,13 +172,13 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     });
 
     // 6. Notifications Insert
-    const unsubNotif = realtimeService.subscribe('NOTIFICATIONS_INSERT', (payload) => {
+    unsubNotif = realtimeService.subscribe('NOTIFICATIONS_INSERT', (payload) => {
       fetchNotifs();
       addToast(payload.title, payload.message, 'info');
     });
 
     // 7. Safety Check-in Update
-    const unsubSafety = realtimeService.subscribe('SAFETY_CHECKINS_UPDATE', (payload) => {
+    unsubSafety = realtimeService.subscribe('SAFETY_CHECKINS_UPDATE', (payload) => {
       setLastRealtimeEvent(`SAFETY_${Date.now()}`);
       if (payload.checkin) {
         addToast(
@@ -189,19 +190,20 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     });
 
     // 8. Shelter Update
-    const unsubShelter = realtimeService.subscribe('SHELTERS_UPDATE', (payload) => {
+    unsubShelter = realtimeService.subscribe('SHELTERS_UPDATE', (payload) => {
       setLastRealtimeEvent(`SHELTER_${payload.id}_${Date.now()}`);
     });
 
     // 9. Resource Update
-    const unsubResource = realtimeService.subscribe('RESOURCES_UPDATE', (payload) => {
+    unsubResource = realtimeService.subscribe('RESOURCES_UPDATE', (payload) => {
       setLastRealtimeEvent(`RESOURCE_${payload.id}_${Date.now()}`);
     });
 
     // 10. Community Posts Insert
-    const unsubPost = realtimeService.subscribe('COMMUNITY_POSTS_INSERT', (payload) => {
+    unsubPost = realtimeService.subscribe('COMMUNITY_POSTS_INSERT', (payload) => {
       setLastRealtimeEvent(`POST_${payload.id}_${Date.now()}`);
     });
+    }
 
     // Also listen to local in-browser disaster sync events (offline resilience)
     const handleLocalEvent = (e: any) => {
@@ -220,7 +222,7 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return () => {
       window.removeEventListener('namma-realtime', handleLocalEvent);
       if (supabase) {
-        channels.forEach(ch => supabase.removeChannel(ch));
+        channels.forEach(ch => supabase?.removeChannel(ch));
       } else {
         unsubInc();
         unsubIncUp();
@@ -233,15 +235,6 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         unsubResource();
         unsubPost();
       }
-      unsubIncUp();
-      unsubReq();
-      unsubReqUp();
-      unsubFlood();
-      unsubNotif();
-      unsubSafety();
-      unsubShelter();
-      unsubResource();
-      unsubPost();
     };
   }, []);
 
