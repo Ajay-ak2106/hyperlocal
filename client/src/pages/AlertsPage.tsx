@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { AlertTriangle, MapPin, Clock } from 'lucide-react';
 import { api } from '../services/api.js';
+import { useRealtime } from '../contexts/RealtimeContext.js';
 
 export const AlertsPage: React.FC = () => {
   const [activeAlerts, setActiveAlerts] = useState<any[]>([]);
+
+  const { lastRealtimeEvent } = useRealtime();
 
   useEffect(() => {
     api.getAlerts().then(data => {
@@ -18,7 +21,7 @@ export const AlertsPage: React.FC = () => {
       }));
       setActiveAlerts(mapped);
     }).catch(err => console.error(err));
-  }, []);
+  }, [lastRealtimeEvent]);
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
