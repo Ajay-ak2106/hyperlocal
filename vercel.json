@@ -14,6 +14,12 @@
     "VITE_SUPABASE_URL": "https://rxqwthmvujmtofkscezs.supabase.co",
     "VITE_SUPABASE_ANON_KEY": "sb_publishable_GS6pcwDR7dP9GYbFr6zzEA_q2s88Ydh"
   },
+  "build": {
+    "env": {
+      "VITE_SUPABASE_URL": "https://rxqwthmvujmtofkscezs.supabase.co",
+      "VITE_SUPABASE_ANON_KEY": "sb_publishable_GS6pcwDR7dP9GYbFr6zzEA_q2s88Ydh"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",

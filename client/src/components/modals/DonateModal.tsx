@@ -15,6 +15,7 @@ export const DonateModal: React.FC<DonateModalProps> = ({ isOpen, onClose }) => 
   const [donorName, setDonorName] = useState('Citizen Supporter');
   const [loading, setLoading] = useState(false);
   const [successTxn, setSuccessTxn] = useState<string | null>(null);
+  const [showQR, setShowQR] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -28,9 +29,13 @@ export const DonateModal: React.FC<DonateModalProps> = ({ isOpen, onClose }) => 
 
   if (!isOpen) return null;
 
-  const handleDonate = async (e: React.FormEvent) => {
+  const handleContributeClick = (e: React.FormEvent) => {
     e.preventDefault();
     if (!campaign) return;
+    setShowQR(true);
+  };
+
+  const handleConfirmPayment = async () => {
     setLoading(true);
 
     try {
@@ -90,8 +95,37 @@ export const DonateModal: React.FC<DonateModalProps> = ({ isOpen, onClose }) => 
               Close
             </button>
           </div>
+        ) : showQR ? (
+          <div className="py-6 text-center space-y-4">
+            <h4 className="text-lg font-bold text-white">Scan to Pay ₹{amount}</h4>
+            <p className="text-xs text-slate-300">Scan this UPI QR Code with Google Pay, PhonePe, or Paytm.</p>
+            <div className="bg-white p-4 rounded-xl inline-block">
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=nammarescue@upi&pn=NammaRescue&am=${amount}`} 
+                alt="UPI QR Code" 
+                className="w-32 h-32 mx-auto"
+              />
+            </div>
+            <p className="text-[10px] text-slate-400">UPI ID: nammarescue@okaxis</p>
+            
+            <button
+              onClick={handleConfirmPayment}
+              disabled={loading}
+              className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all mt-4"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+              <span>I have made the payment</span>
+            </button>
+            <button
+              onClick={() => setShowQR(false)}
+              disabled={loading}
+              className="text-xs text-slate-400 hover:text-slate-200 mt-2"
+            >
+              Go Back
+            </button>
+          </div>
         ) : (
-          <form onSubmit={handleDonate} className="mt-4 space-y-4">
+          <form onSubmit={handleContributeClick} className="mt-4 space-y-4">
             {campaign && (
               <div className="p-4 rounded-xl bg-slate-800/80 border border-slate-700 space-y-2">
                 <h4 className="text-xs font-bold text-white uppercase">{campaign.title}</h4>

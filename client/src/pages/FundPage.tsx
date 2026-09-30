@@ -7,14 +7,24 @@ export const FundPage: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'bank'>('upi');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showQR, setShowQR] = useState(false);
 
   const predefinedAmounts = [100, 500, 1000, 2000];
 
-  const handleDonate = () => {
+  const handleDonateClick = () => {
+    if (paymentMethod === 'upi') {
+      setShowQR(true);
+    } else {
+      processPayment();
+    }
+  };
+
+  const processPayment = () => {
     setIsProcessing(true);
     setTimeout(() => {
       setIsProcessing(false);
       setIsSuccess(true);
+      setShowQR(false);
     }, 2000);
   };
 
@@ -117,13 +127,49 @@ export const FundPage: React.FC = () => {
           </div>
 
           <button
-            onClick={handleDonate}
+            onClick={handleDonateClick}
             disabled={(!selectedAmount && !customAmount) || isProcessing}
             className="w-full py-4 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-extrabold text-lg shadow-lg shadow-rose-500/30 transition-all active:scale-95 disabled:opacity-50 flex justify-center"
           >
             {isProcessing ? 'Processing...' : `Donate ₹${selectedAmount || customAmount}`}
           </button>
         </div>
+
+        {/* QR Code Overlay (In-Place) */}
+        {showQR && (
+          <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white p-8 rounded-3xl max-w-sm w-full text-center space-y-4 shadow-2xl relative animate-in zoom-in-95 duration-200">
+              <h3 className="text-2xl font-bold text-slate-800">Scan to Pay</h3>
+              <p className="text-slate-500 font-medium text-sm">Amount: ₹{selectedAmount || customAmount}</p>
+              
+              <div className="p-4 bg-slate-50 rounded-2xl inline-block border-2 border-slate-100">
+                <img 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=nammarescue@upi&pn=NammaRescue&am=${selectedAmount || customAmount}`} 
+                  alt="UPI QR Code" 
+                  className="w-48 h-48 mx-auto"
+                />
+              </div>
+              
+              <p className="text-xs font-bold text-slate-400">UPI ID: nammarescue@okaxis</p>
+              
+              <button
+                onClick={processPayment}
+                disabled={isProcessing}
+                className="w-full py-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2 mt-2 transition-colors"
+              >
+                {isProcessing ? 'Verifying...' : 'I have made the payment'}
+              </button>
+              
+              <button
+                onClick={() => setShowQR(false)}
+                disabled={isProcessing}
+                className="w-full py-3 text-slate-500 font-bold hover:bg-slate-100 rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Right Column: Info */}
         <div className="space-y-6">
