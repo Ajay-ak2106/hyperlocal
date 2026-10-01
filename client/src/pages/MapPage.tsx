@@ -58,28 +58,14 @@ export const MapPage: React.FC = () => {
       
       {/* Main Map Content */}
       <div className="flex-1 flex flex-col min-h-[60vh] xl:min-h-0 bg-white/40 backdrop-blur-xl border-slate-200/50 rounded-3xl border overflow-hidden shadow-xl relative">
-        <div className="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur-md p-2 rounded-2xl flex gap-2 border border-slate-200/80 shadow-md">
-           <button className="px-4 py-1.5 rounded-xl bg-emerald-500 text-white text-xs font-bold shadow-sm">All</button>
-           <button className="px-4 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">Flood</button>
-           <button className="px-4 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">Landslide</button>
-           <button className="px-4 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">Fire</button>
-           <button className="px-4 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">Other</button>
-        </div>
+
 
         <IncidentMap
           height="100%"
           onSelectIncident={(inc) => setSelectedIncident(inc)}
         />
         
-        {/* Floating action buttons */}
-        <div className="absolute bottom-6 right-6 z-10 flex flex-col gap-2">
-           <button className="w-12 h-12 bg-white/90 backdrop-blur-md border border-slate-200 rounded-full flex items-center justify-center text-slate-600 hover:text-emerald-600 shadow-md transition-colors">
-             <Navigation size={20} />
-           </button>
-           <button className="w-12 h-12 bg-white/90 backdrop-blur-md border border-slate-200 rounded-full flex items-center justify-center text-slate-600 hover:text-emerald-600 shadow-md transition-colors">
-             <Info size={20} />
-           </button>
-        </div>
+
       </div>
 
       {/* Right Sidebar Widget Area */}
