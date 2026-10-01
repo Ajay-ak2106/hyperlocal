@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext.js';
 import { useRealtime } from '../contexts/RealtimeContext.js';
 import { api } from '../services/api.js';
 import { Incident, Volunteer } from '../types/index.js';
+import { calculateDistance } from '../constants/areas.js';
 import {
   LifeBuoy,
   CheckCircle2,
@@ -17,7 +18,7 @@ import {
 } from 'lucide-react';
 
 export const VolunteerDashboardPage: React.FC = () => {
-  const { user, profile, volunteer, currentArea, switchDemoRole, language } = useAuth();
+  const { user, profile, volunteer, currentArea, coords, switchDemoRole, language } = useAuth();
   const { lastRealtimeEvent } = useRealtime();
 
   const [incidents, setIncidents] = useState<Incident[]>([]);
@@ -82,10 +83,17 @@ export const VolunteerDashboardPage: React.FC = () => {
     }
   };
 
-  const pendingIncidents = incidents.filter((i) => {
-    const s = (i.status || '').toLowerCase();
-    return s === 'reported' || s === 'verified';
-  });
+  const pendingIncidents = incidents
+    .filter((i) => {
+      const s = (i.status || '').toLowerCase();
+      return s === 'reported' || s === 'verified';
+    })
+    .map((inc) => ({
+      ...inc,
+      distanceKm: calculateDistance(coords.latitude, coords.longitude, inc.latitude, inc.longitude)
+    }))
+    .sort((a, b) => a.distanceKm - b.distanceKm);
+
   const inProgressIncidents = incidents.filter((i) => {
     const s = (i.status || '').toLowerCase();
     return s === 'in_progress' || s === 'assigned';
@@ -223,7 +231,7 @@ export const VolunteerDashboardPage: React.FC = () => {
                   }`}>
                     {inc.severity}
                   </span>
-                  <span className="text-slate-400">📍 {inc.area}</span>
+                  <span className="text-slate-400">📍 {inc.area} • <strong className="text-emerald-400">{inc.distanceKm.toFixed(1)} km away</strong></span>
                 </div>
                 <span className="text-slate-400 text-[11px]">
                   {new Date(inc.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
