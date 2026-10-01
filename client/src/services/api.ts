@@ -514,12 +514,28 @@ export const api = {
       'getMe'
     );
   },
-  updateProfile: (payload: any) =>
-    resilientCall(
+  updateProfile: async (payload: any) => {
+    if (supabase && payload.user_id) {
+      const { user_id, ...updates } = payload;
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user_id)
+        .select()
+        .single();
+        
+      if (error) {
+        console.error('Supabase updateProfile Error:', error);
+        throw error;
+      }
+      return { profile: data };
+    }
+    return resilientCall(
       () => fetchJSON<any>('/auth/profile', { method: 'PUT', body: JSON.stringify(payload) }),
       () => localStore.updateProfile(payload),
       'updateProfile'
-    ),
+    );
+  },
 
   // Media Upload (multipart)
   uploadFile: async (file: File | Blob, filename = 'recording.webm') => {
