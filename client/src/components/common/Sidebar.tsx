@@ -30,6 +30,8 @@ export const Sidebar: React.FC = () => {
     { to: '/shelters', label: 'Shelters', icon: ShelterIcon },
     { to: '/resources', label: 'Resources', icon: BookOpen },
     { to: '/community', label: 'Community', icon: Users },
+    ...(role === 'VOLUNTEER' ? [{ to: '/volunteer', label: 'Volunteer Dashboard', icon: LifeBuoy }] : []),
+    ...(role === 'ADMIN' ? [{ to: '/admin', label: 'Admin Dashboard', icon: ShieldAlert }] : []),
     { to: '/profile', label: 'Settings', icon: Settings },
   ];
 
