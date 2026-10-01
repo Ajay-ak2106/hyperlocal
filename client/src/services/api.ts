@@ -130,12 +130,27 @@ export const api = {
       'createIncident'
     );
   },
-  updateIncident: (id: string, payload: Partial<Incident>) =>
-    resilientCall(
+  updateIncident: async (id: string, payload: Partial<Incident>) => {
+    if (supabase) {
+      const { data, error } = await supabase
+        .from('incidents')
+        .update(payload)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Supabase updateIncident Error:', error);
+        throw error;
+      }
+      return data;
+    }
+    return resilientCall(
       () => fetchJSON<Incident>(`/incidents/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
       () => localStore.updateIncident(id, payload),
       'updateIncident'
-    ),
+    );
+  },
 
   // Flood Reports
   getFloodReports: () =>
