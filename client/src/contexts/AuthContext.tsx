@@ -165,6 +165,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const switchDemoRole = async (targetRole: UserRole) => {
     try {
+      if (user && user.id && user.id.includes('-') && user.id.length > 20) {
+        // User is real authenticated user (UUID), just update their role
+        await updateProfile({ role: targetRole.toLowerCase() as any });
+        setRole(targetRole);
+        return;
+      }
+
+      // Fallback for unauthenticated mock demo
       const res = await api.demoSwitch(targetRole);
       setUser(res.user);
       setProfile(res.profile);
@@ -180,7 +188,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLanguage(res.profile.preferred_language as Language);
       }
     } catch (err) {
-      console.error('Failed to switch demo role:', err);
+      console.error('Failed to switch role:', err);
     }
   };
 
