@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { IncidentMap } from '../components/map/IncidentMap.js';
-import { RequestHelpModal } from '../components/modals/RequestHelpModal.js';
+
 import { ReportFloodModal } from '../components/modals/ReportFloodModal.js';
 import { SafetyCheckinModal } from '../components/modals/SafetyCheckinModal.js';
 import { DonateModal } from '../components/modals/DonateModal.js';
@@ -37,7 +37,7 @@ export const HomePage: React.FC = () => {
   const navigate = useNavigate();
 
   // Modals
-  const [showHelpModal, setShowHelpModal] = useState(false);
+
   const [showSafetyModal, setShowSafetyModal] = useState(false);
   const [showDonateModal, setShowDonateModal] = useState(false);
   const [showHelplineModal, setShowHelplineModal] = useState(false);
@@ -163,31 +163,8 @@ export const HomePage: React.FC = () => {
         )}
       </div>
 
-      {/* 2. Primary 2 Emergency Action Buttons (Updated to Report Incident) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* REQUEST RESCUE / SOS */}
-        <button
-          onClick={() => setShowHelpModal(true)}
-          className="group p-5 rounded-3xl bg-red-500 hover:bg-red-600 border-4 border-white text-white shadow-xl flex items-center justify-between transition-all active:scale-95"
-        >
-          <div className="flex items-center gap-4 text-left">
-            <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0 backdrop-blur-sm">
-              <LifeBuoy className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <div className="text-2xl font-extrabold tracking-tight text-white mb-0.5">
-                {t.requestHelp}
-              </div>
-              <p className="text-sm text-red-100 font-medium">
-                {language === 'ta'
-                  ? 'மருத்துவம், உணவு மற்றும் அவசர உதவி'
-                  : 'Medical emergency, rescue boats, SOS'}
-              </p>
-            </div>
-          </div>
-          <ArrowRight className="w-6 h-6 text-white group-hover:translate-x-2 transition-transform" />
-        </button>
-
+      {/* 2. Primary 1 Emergency Action Button (Report Incident) */}
+      <div className="grid grid-cols-1 gap-4">
         {/* REPORT INCIDENT */}
         <button
           onClick={() => setShowIncidentModal(true)}
@@ -366,11 +343,7 @@ export const HomePage: React.FC = () => {
       </div>
 
       {/* Modals */}
-      <RequestHelpModal
-        isOpen={showHelpModal}
-        onClose={() => setShowHelpModal(false)}
-        onSuccess={fetchHomeData}
-      />
+
       <SafetyCheckinModal
         isOpen={showSafetyModal}
         onClose={() => setShowSafetyModal(false)}
@@ -392,7 +365,6 @@ export const HomePage: React.FC = () => {
       <VoiceAssistantModal
         isOpen={showVoiceModal}
         onClose={() => setShowVoiceModal(false)}
-        onTriggerHelp={() => setShowHelpModal(true)}
         onTriggerFlood={() => setShowIncidentModal(true)}
       />
     </div>

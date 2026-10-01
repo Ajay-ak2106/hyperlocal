@@ -8,7 +8,7 @@ import { Layout } from './components/common/Layout.js';
 
 import { HomePage } from './pages/HomePage.js';
 import { MapPage } from './pages/MapPage.js';
-import { HelpPage } from './pages/HelpPage.js';
+
 import { CommunityPage } from './pages/CommunityPage.js';
 import { AlertsPage } from './pages/AlertsPage.js';
 import { SheltersPage } from './pages/SheltersPage.js';
@@ -30,8 +30,7 @@ export const App: React.FC = () => {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/map" element={<MapPage />} />
-              <Route path="/help" element={<HelpPage />} />
-              <Route path="/report" element={<HelpPage />} />
+              <Route path="/report" element={<HomePage />} />
               <Route path="/community" element={<CommunityPage />} />
               <Route path="/shelters" element={<SheltersPage />} />
               <Route path="/resources" element={<ResourcesPage />} />

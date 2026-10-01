@@ -28,7 +28,6 @@ export const Sidebar: React.FC = () => {
     { to: '/alerts', label: 'Alerts', icon: Bell },
     { to: '/fund', label: 'Donate Funds', icon: Heart },
     { to: '/shelters', label: 'Shelters', icon: ShelterIcon },
-    { to: '/help', label: 'Rescue Hub', icon: LifeBuoy },
     { to: '/resources', label: 'Resources', icon: BookOpen },
     { to: '/community', label: 'Community', icon: Users },
     { to: '/profile', label: 'Settings', icon: Settings },

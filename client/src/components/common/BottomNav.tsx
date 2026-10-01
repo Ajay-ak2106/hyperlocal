@@ -9,7 +9,6 @@ export const BottomNav: React.FC = () => {
   const navItems = [
     { to: '/', label: t.navHome, icon: Home },
     { to: '/map', label: t.navMap, icon: Map },
-    { to: '/help', label: t.navHelp, icon: LifeBuoy },
     { to: '/community', label: t.navCommunity, icon: Users },
     {
       to: role === 'ADMIN' ? '/admin' : role === 'VOLUNTEER' ? '/volunteer' : '/profile',

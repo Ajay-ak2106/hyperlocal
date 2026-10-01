@@ -8,14 +8,12 @@ import { api } from '../../services/api.js';
 interface VoiceAssistantModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onTriggerHelp?: () => void;
   onTriggerFlood?: () => void;
 }
 
 export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
   isOpen,
   onClose,
-  onTriggerHelp,
   onTriggerFlood
 }) => {
   const { language, user, profile, currentArea, t } = useAuth();
@@ -126,8 +124,6 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
         }, 1200);
       } else if (confirmingIntent === 'REQUEST_HELP') {
         onClose();
-        if (onTriggerHelp) onTriggerHelp();
-        else navigate('/help');
       } else if (confirmingIntent === 'REPORT_FLOOD') {
         onClose();
         if (onTriggerFlood) onTriggerFlood();
