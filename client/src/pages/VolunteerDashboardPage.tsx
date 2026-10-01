@@ -61,7 +61,7 @@ export const VolunteerDashboardPage: React.FC = () => {
     setActionLoadingId(incidentId);
     try {
       // Mark the incident as handled by changing status
-      await api.updateIncident(incidentId, { status: 'in_progress' });
+      await api.updateIncident(incidentId, { status: 'in_progress' as any });
       await loadData();
     } catch (err: any) {
       alert(err.message);
@@ -73,7 +73,7 @@ export const VolunteerDashboardPage: React.FC = () => {
   const handleUpdateStatus = async (incidentId: string, newStatus: string) => {
     setActionLoadingId(incidentId);
     try {
-      await api.updateIncident(incidentId, { status: newStatus });
+      await api.updateIncident(incidentId, { status: newStatus as any });
       await loadData();
     } catch (err: any) {
       alert(err.message);
@@ -82,8 +82,14 @@ export const VolunteerDashboardPage: React.FC = () => {
     }
   };
 
-  const pendingIncidents = incidents.filter((i) => i.status === 'reported' || i.status === 'verified');
-  const inProgressIncidents = incidents.filter((i) => i.status === 'in_progress' || i.status === 'assigned');
+  const pendingIncidents = incidents.filter((i) => {
+    const s = (i.status || '').toLowerCase();
+    return s === 'reported' || s === 'verified';
+  });
+  const inProgressIncidents = incidents.filter((i) => {
+    const s = (i.status || '').toLowerCase();
+    return s === 'in_progress' || s === 'assigned';
+  });
 
   return (
     <div className="pb-24 pt-3 px-3 sm:px-6 max-w-5xl mx-auto space-y-4">
@@ -163,7 +169,7 @@ export const VolunteerDashboardPage: React.FC = () => {
               >
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold text-white">
-                    🚨 {inc.type.toUpperCase()} • {inc.address}
+                    🚨 {inc.type.toUpperCase()} • {inc.area}
                   </span>
                   <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sky-950 text-sky-300 border border-sky-500/40">
                     {inc.status}
@@ -211,13 +217,13 @@ export const VolunteerDashboardPage: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-white uppercase">🆘 {inc.type}</span>
                   <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${
-                    inc.severity === 'critical'
+                    (inc.severity || '').toLowerCase() === 'critical'
                       ? 'bg-red-900/60 text-red-200'
                       : 'bg-amber-900/60 text-amber-200'
                   }`}>
                     {inc.severity}
                   </span>
-                  <span className="text-slate-400">📍 {inc.address}</span>
+                  <span className="text-slate-400">📍 {inc.area}</span>
                 </div>
                 <span className="text-slate-400 text-[11px]">
                   {new Date(inc.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
