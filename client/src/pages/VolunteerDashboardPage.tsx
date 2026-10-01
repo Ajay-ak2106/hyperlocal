@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext.js';
 import { useRealtime } from '../contexts/RealtimeContext.js';
 import { api } from '../services/api.js';
-import { AssistanceRequest, Volunteer } from '../types/index.js';
+import { Incident, Volunteer } from '../types/index.js';
 import {
   LifeBuoy,
   CheckCircle2,
@@ -20,7 +20,7 @@ export const VolunteerDashboardPage: React.FC = () => {
   const { user, profile, volunteer, currentArea, switchDemoRole, language } = useAuth();
   const { lastRealtimeEvent } = useRealtime();
 
-  const [requests, setRequests] = useState<AssistanceRequest[]>([]);
+  const [incidents, setIncidents] = useState<Incident[]>([]);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [loading, setLoading] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
@@ -34,11 +34,11 @@ export const VolunteerDashboardPage: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [reqData, volData] = await Promise.all([
-        api.getAssistanceRequests(),
+      const [incData, volData] = await Promise.all([
+        api.getIncidents(),
         api.getVolunteers()
       ]);
-      setRequests(reqData);
+      setIncidents(incData);
       setVolunteers(volData);
     } catch (e) {
       console.warn(e);
@@ -57,14 +57,11 @@ export const VolunteerDashboardPage: React.FC = () => {
     );
   };
 
-  const handleAcceptRequest = async (requestId: string) => {
-    setActionLoadingId(requestId);
+  const handleAcceptIncident = async (incidentId: string) => {
+    setActionLoadingId(incidentId);
     try {
-      await api.acceptAssistanceRequest(requestId, {
-        volunteer_id: volunteer?.id || user?.id || 'user-vol-1',
-        volunteer_name: volunteer?.full_name || profile?.name || 'Volunteer',
-        volunteer_phone: volunteer?.phone || profile?.mobile_number || '+91 98840 99887'
-      });
+      // Mark the incident as handled by changing status
+      await api.updateIncident(incidentId, { status: 'in_progress' });
       await loadData();
     } catch (err: any) {
       alert(err.message);
@@ -73,10 +70,10 @@ export const VolunteerDashboardPage: React.FC = () => {
     }
   };
 
-  const handleUpdateStatus = async (requestId: string, newStatus: string) => {
-    setActionLoadingId(requestId);
+  const handleUpdateStatus = async (incidentId: string, newStatus: string) => {
+    setActionLoadingId(incidentId);
     try {
-      await api.updateAssistanceStatus(requestId, newStatus);
+      await api.updateIncident(incidentId, { status: newStatus });
       await loadData();
     } catch (err: any) {
       alert(err.message);
@@ -85,10 +82,8 @@ export const VolunteerDashboardPage: React.FC = () => {
     }
   };
 
-  const pendingRequests = requests.filter((r) => r.status === 'PENDING');
-  const myAssignedRequests = requests.filter(
-    (r) => r.assigned_volunteer_id === user?.id || r.assigned_volunteer_name?.includes(profile?.name || '')
-  );
+  const pendingIncidents = incidents.filter((i) => i.status === 'reported' || i.status === 'verified');
+  const inProgressIncidents = incidents.filter((i) => i.status === 'in_progress' || i.status === 'assigned');
 
   return (
     <div className="pb-24 pt-3 px-3 sm:px-6 max-w-5xl mx-auto space-y-4">
@@ -152,63 +147,41 @@ export const VolunteerDashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* My Active Tasks */}
-      {myAssignedRequests.length > 0 && (
+      {/* Active Incidents In Progress */}
+      {inProgressIncidents.length > 0 && (
         <div className="space-y-3">
           <h2 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4" />
-            <span>My Active Assignments ({myAssignedRequests.length})</span>
+            <span>Incidents Currently Being Handled ({inProgressIncidents.length})</span>
           </h2>
 
           <div className="space-y-3">
-            {myAssignedRequests.map((req) => (
+            {inProgressIncidents.map((inc) => (
               <div
-                key={req.id}
+                key={inc.id}
                 className="p-5 rounded-2xl bg-slate-800/80 border border-slate-700 space-y-3"
               >
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold text-white">
-                    🚨 {req.category} • {req.area}
+                    🚨 {inc.type.toUpperCase()} • {inc.address}
                   </span>
                   <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sky-950 text-sky-300 border border-sky-500/40">
-                    {req.status}
+                    {inc.status}
                   </span>
                 </div>
 
-                <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">{req.description}</p>
+                <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">{inc.description}</p>
 
                 <div className="pt-2 border-t border-slate-700 flex items-center justify-between flex-wrap gap-2 text-xs">
-                  <div>
-                    Citizen: <strong className="text-white">{req.citizen_name}</strong>
-                    {req.citizen_phone && (
-                      <a href={`tel:${req.citizen_phone}`} className="ml-2 text-sky-400 hover:underline">
-                        📞 {req.citizen_phone}
-                      </a>
-                    )}
-                  </div>
-
                   <div className="flex items-center gap-2">
-                    {req.status === 'ACCEPTED' && (
-                      <button
-                        disabled={actionLoadingId === req.id}
-                        onClick={() => handleUpdateStatus(req.id, 'IN_PROGRESS')}
-                        className="py-1.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center gap-1 active:scale-95 transition-colors"
-                      >
-                        <PlayCircle className="w-3.5 h-3.5" />
-                        <span>En Route</span>
-                      </button>
-                    )}
-
-                    {(req.status === 'ACCEPTED' || req.status === 'IN_PROGRESS') && (
-                      <button
-                        disabled={actionLoadingId === req.id}
-                        onClick={() => handleUpdateStatus(req.id, 'COMPLETED')}
-                        className="py-1.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1 active:scale-95 transition-all"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>Mark Resolved</span>
-                      </button>
-                    )}
+                    <button
+                      disabled={actionLoadingId === inc.id}
+                      onClick={() => handleUpdateStatus(inc.id, 'resolved')}
+                      className="py-1.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1 active:scale-95 transition-all"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Mark Resolved</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -217,59 +190,55 @@ export const VolunteerDashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* Available Pending Requests Queue */}
+      {/* Available Pending Incidents Queue */}
       <div className="space-y-3">
         <h2 className="text-sm font-bold text-white flex items-center gap-2">
           <Clock className="w-4 h-4 text-amber-400" />
-          <span>Pending Citizen Requests Awaiting Volunteer ({pendingRequests.length})</span>
+          <span>Reported Incidents Awaiting Volunteer ({pendingIncidents.length})</span>
         </h2>
 
-        {pendingRequests.length === 0 ? (
+        {pendingIncidents.length === 0 ? (
           <div className="p-8 rounded-2xl bg-slate-800/80 border border-slate-700 text-center text-xs text-slate-400">
-            All requests in {currentArea} are currently assigned.
+            All reported incidents are currently being handled.
           </div>
         ) : (
-          pendingRequests.map((req) => (
+          pendingIncidents.map((inc) => (
             <div
-              key={req.id}
+              key={inc.id}
               className="p-5 rounded-2xl bg-slate-800/80 border border-slate-700 space-y-3"
             >
               <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-white">🆘 {req.category}</span>
+                  <span className="font-bold text-white uppercase">🆘 {inc.type}</span>
                   <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${
-                    req.severity === 'CRITICAL'
+                    inc.severity === 'critical'
                       ? 'bg-red-900/60 text-red-200'
                       : 'bg-amber-900/60 text-amber-200'
                   }`}>
-                    {req.severity}
+                    {inc.severity}
                   </span>
-                  <span className="text-slate-400">📍 {req.area}</span>
+                  <span className="text-slate-400">📍 {inc.address}</span>
                 </div>
                 <span className="text-slate-400 text-[11px]">
-                  {new Date(req.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {new Date(inc.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
 
-              <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">{req.description}</p>
+              <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">{inc.description}</p>
 
               <div className="pt-2 border-t border-slate-700 flex items-center justify-between flex-wrap gap-2 text-xs">
                 <div>
-                  Citizen: <strong className="text-white">{req.citizen_name}</strong>
-                  {req.citizen_phone && (
-                    <a href={`tel:${req.citizen_phone}`} className="ml-2 text-sky-400 hover:underline">
-                      📞 {req.citizen_phone}
-                    </a>
-                  )}
+                  <strong className="text-white">Status: </strong>
+                  <span className="text-amber-400">{inc.status}</span>
                 </div>
 
                 <button
-                  disabled={actionLoadingId === req.id}
-                  onClick={() => handleAcceptRequest(req.id)}
+                  disabled={actionLoadingId === inc.id}
+                  onClick={() => handleAcceptIncident(inc.id)}
                   className="py-2 px-4 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs flex items-center gap-1.5 active:scale-95 transition-all"
                 >
                   <UserCheck className="w-4 h-4" />
-                  <span>I Will Help (Accept)</span>
+                  <span>I Will Handle This</span>
                 </button>
               </div>
             </div>
