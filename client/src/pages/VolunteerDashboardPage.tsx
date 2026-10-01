@@ -14,7 +14,9 @@ import {
   AlertTriangle,
   Award,
   Check,
-  UserCheck
+  UserCheck,
+  BrainCircuit,
+  Activity
 } from 'lucide-react';
 
 export const VolunteerDashboardPage: React.FC = () => {
@@ -83,16 +85,54 @@ export const VolunteerDashboardPage: React.FC = () => {
     }
   };
 
+  const calculateAiPriority = (desc: string, severity: string, dist: number) => {
+    let score = 0;
+    const s = severity.toLowerCase();
+    if (s === 'critical') score += 50;
+    else if (s === 'high') score += 40;
+    else if (s === 'medium') score += 20;
+    else score += 10;
+
+    const lowerDesc = desc.toLowerCase();
+    
+    // Life-threatening keywords
+    const lifeThreats = ['trapped', 'drowning', 'bleeding', 'unconscious', 'heart', 'snake', 'electric', 'breath'];
+    if (lifeThreats.some(word => lowerDesc.includes(word))) score += 40;
+
+    // Vulnerable population
+    const vulnerable = ['children', 'baby', 'pregnant', 'elderly', 'disabled', 'wheelchair'];
+    if (vulnerable.some(word => lowerDesc.includes(word))) score += 25;
+
+    // Needs
+    const basicNeeds = ['food', 'water', 'fever', 'cut', 'stranded'];
+    if (basicNeeds.some(word => lowerDesc.includes(word))) score += 10;
+
+    // Distance factor (closer = slightly higher priority)
+    if (dist <= 2) score += 10;
+    else if (dist > 10) score -= 10;
+
+    score = Math.min(Math.max(score, 10), 99); // Clamp between 10 and 99
+
+    let tag = 'Standard';
+    let color = 'bg-slate-800 text-slate-300';
+    if (score >= 85) { tag = 'Life-Threatening'; color = 'bg-rose-900/80 text-rose-200 border border-rose-500/50'; }
+    else if (score >= 65) { tag = 'Urgent/Vulnerable'; color = 'bg-orange-900/80 text-orange-200 border border-orange-500/50'; }
+    else if (score >= 45) { tag = 'High Priority'; color = 'bg-amber-900/80 text-amber-200 border border-amber-500/50'; }
+
+    return { score, tag, color };
+  };
+
   const pendingIncidents = incidents
     .filter((i) => {
       const s = (i.status || '').toLowerCase();
       return s === 'reported' || s === 'verified';
     })
-    .map((inc) => ({
-      ...inc,
-      distanceKm: calculateDistance(coords.latitude, coords.longitude, inc.latitude, inc.longitude)
-    }))
-    .sort((a, b) => a.distanceKm - b.distanceKm);
+    .map((inc) => {
+      const dist = calculateDistance(coords.latitude, coords.longitude, inc.latitude, inc.longitude);
+      const ai = calculateAiPriority(inc.description, inc.severity, dist);
+      return { ...inc, distanceKm: dist, ai };
+    })
+    .sort((a, b) => b.ai.score - a.ai.score || a.distanceKm - b.distanceKm);
 
   const inProgressIncidents = incidents.filter((i) => {
     const s = (i.status || '').toLowerCase();
@@ -238,7 +278,19 @@ export const VolunteerDashboardPage: React.FC = () => {
                 </span>
               </div>
 
-              <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">{inc.description}</p>
+              {/* AI Priority Badge */}
+              <div className={`mt-2 flex items-center justify-between px-3 py-1.5 rounded-lg ${inc.ai.color}`}>
+                <div className="flex items-center gap-1.5">
+                  <BrainCircuit className="w-4 h-4" />
+                  <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">AI Priority: {inc.ai.tag}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Activity className="w-3.5 h-3.5 opacity-70" />
+                  <span className="text-xs font-black">{inc.ai.score}% Match</span>
+                </div>
+              </div>
+
+              <p className="text-xs sm:text-sm text-slate-200 leading-relaxed mt-3">{inc.description}</p>
 
               <div className="pt-2 border-t border-slate-700 flex items-center justify-between flex-wrap gap-2 text-xs">
                 <div>
