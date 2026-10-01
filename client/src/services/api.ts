@@ -519,7 +519,12 @@ export const api = {
       } else if (error) {
         console.error('Supabase getMe Error:', error);
       }
-      return { user: { id: user_id }, profile: data };
+      const mappedProfile = data ? {
+        ...data,
+        mobile_number: data.phone,
+        preferred_language: data.language
+      } : null;
+      return { user: { id: user_id }, profile: mappedProfile };
     }
 
     const qs = user_id ? `?user_id=${user_id}` : '';
@@ -531,10 +536,14 @@ export const api = {
   },
   updateProfile: async (payload: any) => {
     if (supabase && payload.user_id) {
-      const { user_id, ...updates } = payload;
+      const { user_id, mobile_number, preferred_language, ...rest } = payload;
+      const dbUpdates: any = { ...rest };
+      if (mobile_number !== undefined) dbUpdates.phone = mobile_number;
+      if (preferred_language !== undefined) dbUpdates.language = preferred_language;
+
       const { data, error } = await supabase
         .from('profiles')
-        .update(updates)
+        .update(dbUpdates)
         .eq('id', user_id)
         .select()
         .single();
@@ -543,7 +552,13 @@ export const api = {
         console.error('Supabase updateProfile Error:', error);
         throw error;
       }
-      return { profile: data };
+      
+      const mappedProfile = {
+        ...data,
+        mobile_number: data.phone,
+        preferred_language: data.language
+      };
+      return { profile: mappedProfile };
     }
     return resilientCall(
       () => fetchJSON<any>('/auth/profile', { method: 'PUT', body: JSON.stringify(payload) }),
