@@ -122,6 +122,38 @@ export const VolunteerDashboardPage: React.FC = () => {
     return { score, tag, color };
   };
 
+  const checkSuspicious = (inc: Incident, allIncidents: Incident[]) => {
+    const lowerDesc = (inc.description || '').toLowerCase();
+    
+    // Explicit fake markers
+    if (['test', 'fake', 'joke'].some(w => lowerDesc.includes(w))) {
+      return 'Contains suspicious test/fake keywords';
+    }
+    
+    if (lowerDesc.length < 8) {
+      return 'Description is unusually short or vague';
+    }
+
+    // Check for isolated major events (Critical severity or Flood/Fire, but NO other reports in 3km)
+    const s = (inc.severity || '').toLowerCase();
+    const t = (inc.type || '').toLowerCase();
+    const isMajor = s === 'critical' || t === 'flood' || t === 'fire' || t === 'cyclone';
+    
+    if (isMajor) {
+      const nearby = allIncidents.filter(other => {
+        if (other.id === inc.id) return false;
+        const d = calculateDistance(inc.latitude, inc.longitude, other.latitude, other.longitude);
+        return d <= 3.0; // within 3km
+      });
+      
+      if (nearby.length === 0) {
+        return `Major ${t || 'emergency'} reported, but no other incidents detected within a 3km radius.`;
+      }
+    }
+
+    return null; // Not suspicious
+  };
+
   const pendingIncidents = incidents
     .filter((i) => {
       const s = (i.status || '').toLowerCase();
@@ -130,7 +162,8 @@ export const VolunteerDashboardPage: React.FC = () => {
     .map((inc) => {
       const dist = calculateDistance(coords.latitude, coords.longitude, inc.latitude, inc.longitude);
       const ai = calculateAiPriority(inc.description, inc.severity, dist);
-      return { ...inc, distanceKm: dist, ai };
+      const suspiciousReason = checkSuspicious(inc, incidents);
+      return { ...inc, distanceKm: dist, ai, suspiciousReason };
     })
     .sort((a, b) => b.ai.score - a.ai.score || a.distanceKm - b.distanceKm);
 
@@ -277,6 +310,16 @@ export const VolunteerDashboardPage: React.FC = () => {
                   {new Date(inc.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
+
+              {inc.suspiciousReason && (
+                <div className="mt-3 p-3 rounded-xl bg-amber-950/50 border border-amber-500/50 flex gap-2 items-start">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <strong className="text-amber-400 text-[11px] uppercase tracking-wider block mb-0.5">⚠️ AI Verification Required</strong>
+                    <p className="text-amber-200/80 text-xs leading-relaxed">{inc.suspiciousReason}</p>
+                  </div>
+                </div>
+              )}
 
               {/* AI Priority Badge */}
               <div className={`mt-2 flex items-center justify-between px-3 py-1.5 rounded-lg ${inc.ai.color}`}>
