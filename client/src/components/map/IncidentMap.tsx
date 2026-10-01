@@ -99,7 +99,20 @@ const CustomMapFloatingControls = ({
   const map = useMap();
 
   const handleLocateMe = () => {
-    if (Number.isFinite(centerLat) && Number.isFinite(centerLng)) {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          map.flyTo([pos.coords.latitude, pos.coords.longitude], 15, { duration: 1.2 });
+        },
+        (err) => {
+          console.warn('GPS locate failed:', err);
+          if (Number.isFinite(centerLat) && Number.isFinite(centerLng)) {
+            map.flyTo([centerLat, centerLng], 14, { duration: 1.2 });
+          }
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    } else if (Number.isFinite(centerLat) && Number.isFinite(centerLng)) {
       map.flyTo([centerLat, centerLng], 14, { duration: 1.2 });
     }
   };
@@ -126,8 +139,15 @@ const CustomMapFloatingControls = ({
     }
   };
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (containerRef.current) {
+      L.DomEvent.disableClickPropagation(containerRef.current);
+    }
+  }, []);
+
   return (
-    <div className="absolute bottom-5 right-3 z-[400] flex flex-col gap-2 pointer-events-auto">
+    <div ref={containerRef} className="absolute bottom-5 right-3 z-[400] flex flex-col gap-2 pointer-events-auto">
       <button
         type="button"
         onClick={handleLocateMe}
