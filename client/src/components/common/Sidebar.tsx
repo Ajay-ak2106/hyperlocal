@@ -14,7 +14,8 @@ import {
   X,
   MapPin,
   Heart,
-  LifeBuoy
+  LifeBuoy,
+  ShieldAlert
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext.js';
 
