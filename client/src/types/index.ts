@@ -13,6 +13,7 @@ export interface User {
 export interface Profile {
   id: string;
   name: string;
+  role?: UserRole;
   mobile_number: string;
   area: string;
   city: string;
