@@ -3,23 +3,55 @@ import { IncidentMap } from '../components/map/IncidentMap.js';
 import { Incident } from '../types/index.js';
 import { AlertTriangle, Home as ShelterIcon, Navigation, Info, Search } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext.js';
+import { useRealtime } from '../contexts/RealtimeContext.js';
+import { api } from '../services/api.js';
 
 export const MapPage: React.FC = () => {
   const { language } = useAuth();
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
 
-  // Mock data for the sidebar to match the UI image
-  const activeAlerts = [
-    { id: 1, title: 'Flood Risk Area', location: 'Adyar, Chennai', time: '2h ago', level: 'High Risk', type: 'flood' },
-    { id: 2, title: 'Landslide Risk', location: 'Valparai, Coimbatore', time: '4h ago', level: 'Medium Risk', type: 'landslide' },
-    { id: 3, title: 'Heavy Rainfall', location: 'Tiruvallur, Chennai', time: '5h ago', level: 'Moderate', type: 'rain' },
-    { id: 4, title: 'Road Blocked', location: 'OMR Road, Chennai', time: '5h ago', level: 'Blocked', type: 'road' }
-  ];
+  const [activeAlerts, setActiveAlerts] = useState<any[]>([]);
+  const [nearbyShelters, setNearbyShelters] = useState<any[]>([]);
+  const { lastRealtimeEvent } = useRealtime();
 
-  const nearbyShelters = [
-    { id: 1, name: 'Government High School', dist: '1.2 km', open: true },
-    { id: 2, name: 'Community Hall', dist: '2.8 km', open: true },
-  ];
+  React.useEffect(() => {
+    Promise.all([api.getAlerts(), api.getIncidents()]).then(([alertsData, incidentsData]) => {
+      const mappedAlerts = alertsData.map((alert: any) => ({
+        id: alert.id,
+        title: alert.title,
+        location: alert.area,
+        time: new Date(alert.created_at).toLocaleTimeString(),
+        level: alert.severity === 'critical' ? 'CRITICAL' : 'HIGH',
+        type: 'alert',
+        timestamp: new Date(alert.created_at).getTime()
+      }));
+
+      const mappedIncidents = incidentsData.map((inc: any) => ({
+        id: inc.id,
+        title: `Reported: ${inc.type.toUpperCase().replace('_', ' ')}`,
+        location: inc.address,
+        time: new Date(inc.created_at).toLocaleTimeString(),
+        level: inc.severity === 'critical' ? 'CRITICAL' : 'HIGH',
+        type: inc.type,
+        timestamp: new Date(inc.created_at).getTime()
+      }));
+
+      const combined = [...mappedAlerts, ...mappedIncidents]
+        .sort((a, b) => b.timestamp - a.timestamp)
+        .slice(0, 4); // Top 4 for the sidebar
+      setActiveAlerts(combined);
+    }).catch(err => console.error(err));
+    
+    api.getShelters().then(data => {
+      const mapped = data.slice(0, 2).map((shelter: any) => ({
+        id: shelter.id,
+        name: shelter.name,
+        dist: 'Nearby', // Mocked distance since we don't have user location here
+        open: shelter.status === 'ACTIVE' || shelter.status === 'active' || true
+      }));
+      setNearbyShelters(mapped);
+    }).catch(err => console.error(err));
+  }, [lastRealtimeEvent]);
 
   return (
     <div className="h-full flex flex-col xl:flex-row gap-6 p-2 sm:p-0">
