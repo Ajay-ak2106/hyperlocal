@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext.js';
-import { User, Phone, MapPin, Globe, Shield, LifeBuoy, CheckCircle2, Key, ShieldAlert } from 'lucide-react';
+import { User, Phone, MapPin, Globe, Shield, LifeBuoy, CheckCircle2, Key, ShieldAlert, Mail, LogOut } from 'lucide-react';
 import { UserRole } from '../types/index.js';
 import { CHENNAI_AREAS } from '../constants/areas.js';
 
@@ -53,8 +53,113 @@ export const ProfilePage: React.FC = () => {
     { role: 'ADMIN', email: 'demo.admin@example.com', name: 'State Disaster Ops HQ', desc: 'GCC Disaster Verification & Control', icon: ShieldAlert, color: 'text-red-400' },
   ];
 
+  const [authEmail, setAuthEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  const handleSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!authEmail) return;
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      await useAuth().sendOtp(authEmail);
+      setOtpSent(true);
+    } catch (err: any) {
+      setAuthError(err.message || 'Failed to send OTP');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!authEmail || !otp) return;
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      await useAuth().verifyOtp(authEmail, otp);
+      alert('Successfully logged in!');
+      setOtpSent(false);
+      setAuthEmail('');
+      setOtp('');
+    } catch (err: any) {
+      setAuthError(err.message || 'Invalid OTP');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
   return (
     <div className="pb-24 pt-3 px-3 sm:px-6 max-w-4xl mx-auto space-y-5">
+      {/* Real Email Auth Section */}
+      <div className="bg-white/80 backdrop-blur-md border border-slate-700 p-5 rounded-2xl shadow-lg">
+        <div className="flex items-center gap-2 mb-4">
+          <Mail className="w-5 h-5 text-emerald-600" />
+          <h2 className="text-sm font-bold text-slate-800">Secure Account Access</h2>
+        </div>
+        
+        {useAuth().user?.email && !useAuth().user?.email?.includes('demo') ? (
+          <div className="flex items-center justify-between p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+            <div>
+              <p className="text-xs font-bold text-emerald-800">Authenticated as</p>
+              <p className="text-sm text-emerald-900">{useAuth().user?.email}</p>
+            </div>
+            <button 
+              onClick={() => useAuth().logout()}
+              className="px-4 py-2 bg-white text-red-600 border border-red-200 rounded-lg text-xs font-bold hover:bg-red-50 flex items-center gap-2"
+            >
+              <LogOut className="w-4 h-4" /> Logout
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-xs text-slate-600">Enter your email to receive a secure One-Time Password. No passwords required.</p>
+            {authError && <p className="text-xs text-red-500 font-bold bg-red-50 p-2 rounded">{authError}</p>}
+            
+            {!otpSent ? (
+              <form onSubmit={handleSendOtp} className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="email"
+                  value={authEmail}
+                  onChange={(e) => setAuthEmail(e.target.value)}
+                  placeholder="Enter your email address"
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={authLoading}
+                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl transition-colors disabled:opacity-50"
+                >
+                  {authLoading ? 'Sending...' : 'Send Magic OTP'}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyOtp} className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="text"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  placeholder="Enter 6-digit OTP"
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={authLoading}
+                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl transition-colors disabled:opacity-50"
+                >
+                  {authLoading ? 'Verifying...' : 'Login Now'}
+                </button>
+              </form>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Title */}
       <div className="bg-white/80 backdrop-blur-md border border-slate-700 p-5 rounded-2xl shadow-lg flex items-center justify-between">
         <div>
